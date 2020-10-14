@@ -1,0 +1,37 @@
+{
+  "name": "community-plays",
+  "version": "0.0.1",
+  "description": "Simple app that reads an input and outputs keyboard events",
+  "main": "server.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "tsc": "tsc"
+  },
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mwood77/community-plays.git"
+  },
+  "keywords": [
+    "twitch",
+    "youtube",
+    "plays",
+    "interactive"
+  ],
+  "author": "Michael Wood",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mwood77/community-plays/issues"
+  },
+  "homepage": "https://github.com/mwood77/community-plays#readme",
+  "dependencies": {
+    "@types/gapi": "0.0.39",
+    "google-auth-library": "^6.1.1",
+    "googleapis": "^61.0.0",
+    "http": "0.0.1-security",
+    "typescript": "^4.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^14.11.8"
+  }
+}

@@ -1,0 +1,17 @@
+# Node
+node_modules/
+
+# Secrets
+super-secrets/me*
+super-secrets/client*
+super-secrets/token*
+super-secrets/youtube*
+quickstart.js
+
+#Emu stuff
+/emu-rom
+sixtyforce.app
+Super-Mario_64.z64
+
+#macOS BS..
+.DH_store
