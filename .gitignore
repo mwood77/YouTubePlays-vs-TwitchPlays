@@ -1,12 +1,14 @@
 # Node
 node_modules/
 
+# Distribution
+dist/
+
 # Secrets
-super-secrets/me*
+super-secrets/my*
 super-secrets/client*
 super-secrets/token*
-super-secrets/youtube*
-quickstart.js
+client_secret.json
 
 #Emu stuff
 /emu-rom
@@ -15,3 +17,6 @@ Super-Mario_64.z64
 
 #macOS BS..
 .DH_store
+
+#VSCode BS..
+.VCODE
