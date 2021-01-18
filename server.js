@@ -3,6 +3,8 @@ const http = require('http');
 var readline = require('readline');
 var {google} = require('googleapis');
 const { rejects } = require('assert');
+
+
 const port = 3000;
 
 var OAuth2 = google.auth.OAuth2;
@@ -13,7 +15,7 @@ var SCOPES = ['https://www.googleapis.com/auth/youtube.readonly'];
 // at ~/.credentials/youtube-nodejs-quickstart.json
 var SCOPES = ['https://www.googleapis.com/auth/youtube.readonly'];
 var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
-    process.env.USERPROFILE) + '/.super-secrets/';
+  process.env.USERPROFILE) + '/.super-secrets/';
 var TOKEN_PATH = TOKEN_DIR + 'youtube-nodejs-quickstart.json';
 
 // var API_KEY = 'AIzaSyDlSkyNb3vUi3Jw7WusrGHqqRLrSufYrH4';
@@ -24,6 +26,15 @@ var authed;
 var running = false;
 var count = 0;
 
+// import { rxjs } from 'rxjs';
+// import { concatMap, map, expand, catchError } from 'rxjs/operators';
+
+async () => {
+  const rxjs = await import('https://unpkg.com/@esm-bundle/rxjs/esm/es2015/rxjs.min.js')
+  const operators = await import('https://unpkg.com/@esm-bundle/rxjs/esm/es2015/rxjs-operators.min.js')
+
+  console.log(rxjs, operators)
+}
 
 // var { Controller }  = require('./models/controller');
 // import * as n64Controller  from './controller-keybinds/n64.json';
@@ -170,7 +181,7 @@ function getVideoDetails(auth) {
     })
 }
 
-function getLiveChat(liveChat) {
+function getLiveChat(liveChat, interval) {
     service.liveChatMessages.list({
         auth: authed,
         key: API_KEY,
@@ -183,22 +194,21 @@ function getLiveChat(liveChat) {
         }
         const liveChatDetails = response.data;
         const totalResults = response.data.pageInfo.totalResults;
+        const oldPollingTimeInteval = interval;
+
         if (liveChatDetails == 0) {
             console.error(`No chat with id ${liveChat} was found.`);
         } else {
             running = true;
-            getPaginatedLiveChat(liveChat, liveChatDetails.pollingIntervalMillis, liveChatDetails.nextPageToken);
+            beginRecursionLogging(liveChat, liveChatDetails.pollingIntervalMillis, liveChatDetails.nextPageToken);
         }
     });
 }
 
 
-  function getPaginatedLiveChat(liveChat, pollingInterval, nextPageToken, callback) {
-    var repeatValues = {
-        newNextPageToken: '',
-        interval: 2000,
-    };
+function getPaginatedLiveChat(liveChat, pollingInterval, nextPageToken, callback) {
 
+  return new Promise(function(resolve, reject) {
     service.liveChatMessages.list({
         auth: authed,
         key: API_KEY,
@@ -207,39 +217,68 @@ function getLiveChat(liveChat) {
         nextPageToken: nextPageToken
     }, function(err, response) {
         if (err) {
-            console.error('Encountered an error retrieving repeat liveChat data: ' + err);
+            console.error('Encountered an error retrieving liveChat data: ' + err);
             return;
         }
-
-        let repeat = response.data;
-        repeatValues.nextPageToken = repeat.nextPageToken;
-        repeatValues.interval = repeat.pollingIntervalMillis;
+        const repeat = response.data;
         
         // TEMP TO VIEW DATA =================================
         const totalResults = response.data.pageInfo.totalResults;
+        console.log(totalResults)
         if (repeat == 0) {
             console.error(`No chat with id ${liveChat} was found.`);
         } else {
-            console.info('Polling interval is: %s', repeatValues.interval);
-            console.log('The last comment was %s \n',
-            repeat.items[totalResults-1].snippet.textMessageDetails.messageText,
+            // console.info('Polling interval is: %s', repeat.pollingIntervalMillis);
+            // console.log('The last comment was %s \n',
+            // repeat.items[totalResults-1].snippet.textMessageDetails.messageText,
             // repeat.items[totalResults-1].snippet.authorChannelId,
+            // );
+            resolve(
+              {
+                'liveChatID': liveChat,
+                'interval': repeat.pollingIntervalMillis, 
+                'token': repeat.nextPageToken,
+                // 'messages': repeat.items[totalResults-1].snippet.textMessageDetails.messageText
+                'messages': repeat.items
+              },
+              // beginRecursionLogging(liveChat,repeat.pollingIntervalMillis,repeat.nextPageToken)
             );
-            count++;
-        }
+          }
         // TEMP TO VIEW DATA =================================
     });
+  })
+}
 
-    // if (running && count === count + 1 || count == 0) {
-    //     setInterval( function() {
-    //       executeOnInterval(liveChat, repeatValues.interval, repeatValues.newNextPageToken, Date.now());
-    //     }, repeatValues.pollingInterval);
-    // };
+  
+beginRecursionLogging = (liveChatID, interval, nextPageToken) => {
+  var stream = fs.createWriteStream('output.txt')
+  getPaginatedLiveChat(liveChatID, interval, nextPageToken)
+  .then(function(result) {
+    console.log(
+      'the old polling time was %s and the updated polling time is %s seconds', 
+      interval === undefined ? '--first run--' : result, 
+      Math.round(result.interval / 1000)
+      )
 
-    var timestamp = Date.now()
-    // executeOnInterval(liveChat, repeatValues.interval, repeatValues.newNextPageToken, new Date(timestamp))
-  }
+    result.messages.forEach((element, index) => {
+      // fs.appendFileSync('output.txt', element.snippet.textMessageDetails.messageText)
+      stream.write(element.snippet.textMessageDetails.messageText+'\n')
+    })
 
+    // setTimeout(function callPaginatedChatAgain() {
+      getPaginatedLiveChat(result.liveChatID, result.interval, result.nextPageToken)
+    // })
+  })
+
+
+  // getPaginatedLiveChat(liveChatID, interval, nextPageToken)
+  //   .pipe(
+  //     expand(_ => rxjs.timer(_.interval).pipe(concatMap(_ => getPaginatedLiveChat)))
+  //   ).subscribe();
+
+}
+
+beginRecursionLogging();
 
 
 // TODO

@@ -3,6 +3,7 @@ node_modules/
 
 # Distribution
 dist/
+output.txt
 
 # Secrets
 super-secrets/my*
