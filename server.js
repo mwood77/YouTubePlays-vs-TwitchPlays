@@ -1,11 +1,7 @@
 const fs = require('fs');
-const http = require('http');
 var readline = require('readline');
 var {google} = require('googleapis');
-const { rejects } = require('assert');
-
-
-const port = 3000;
+var stream = fs.createWriteStream('output.txt')
 
 var OAuth2 = google.auth.OAuth2;
 var service = google.youtube('v3');
@@ -17,24 +13,12 @@ var SCOPES = ['https://www.googleapis.com/auth/youtube.readonly'];
 var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
   process.env.USERPROFILE) + '/.super-secrets/';
 var TOKEN_PATH = TOKEN_DIR + 'youtube-nodejs-quickstart.json';
-
-// var API_KEY = 'AIzaSyDlSkyNb3vUi3Jw7WusrGHqqRLrSufYrH4';
-const API_KEY = process.env.APIKEY
-const VIDEO_ID = process.env.VIDID;               // Your video id
+const API_KEY = process.env.APIKEY;
+const VIDEO_ID = process.env.VIDID;
 
 var authed;
-var running = false;
-var count = 0;
+var maximumDailyRequests = 10000;
 
-// import { rxjs } from 'rxjs';
-// import { concatMap, map, expand, catchError } from 'rxjs/operators';
-
-async () => {
-  const rxjs = await import('https://unpkg.com/@esm-bundle/rxjs/esm/es2015/rxjs.min.js')
-  const operators = await import('https://unpkg.com/@esm-bundle/rxjs/esm/es2015/rxjs-operators.min.js')
-
-  console.log(rxjs, operators)
-}
 
 // var { Controller }  = require('./models/controller');
 // import * as n64Controller  from './controller-keybinds/n64.json';
@@ -172,7 +156,7 @@ function getVideoDetails(auth) {
         if (videoDetails == 0) {
             console.error(`No video with id ${VIDEO_ID} was found.`)
         } else {
-            console.log('======= Source =======\n Channel = %s\n Video = %s\n Live Chat Id = %s\n======================\n',
+            console.log('\n\n======= Source =======\n Channel = %s\n Video = %s\n Live Chat Id = %s\n======================\n\n',
               channel, 
               videoTitle,
               chatId);
@@ -199,16 +183,13 @@ function getLiveChat(liveChat, interval) {
         if (liveChatDetails == 0) {
             console.error(`No chat with id ${liveChat} was found.`);
         } else {
-            running = true;
-            beginRecursionLogging(liveChat, liveChatDetails.pollingIntervalMillis, liveChatDetails.nextPageToken);
+          beginRecursionLogging(liveChat, liveChatDetails.nextPageToken);
         }
     });
 }
 
 
-function getPaginatedLiveChat(liveChat, pollingInterval, nextPageToken, callback) {
-
-  return new Promise(function(resolve, reject) {
+function getPaginatedLiveChat(liveChat, nextPageToken) {
     service.liveChatMessages.list({
         auth: authed,
         key: API_KEY,
@@ -220,90 +201,30 @@ function getPaginatedLiveChat(liveChat, pollingInterval, nextPageToken, callback
             console.error('Encountered an error retrieving liveChat data: ' + err);
             return;
         }
+
         const repeat = response.data;
-        
-        // TEMP TO VIEW DATA =================================
-        const totalResults = response.data.pageInfo.totalResults;
-        console.log(totalResults)
         if (repeat == 0) {
             console.error(`No chat with id ${liveChat} was found.`);
         } else {
-            // console.info('Polling interval is: %s', repeat.pollingIntervalMillis);
-            // console.log('The last comment was %s \n',
-            // repeat.items[totalResults-1].snippet.textMessageDetails.messageText,
-            // repeat.items[totalResults-1].snippet.authorChannelId,
-            // );
-            resolve(
-              {
-                'liveChatID': liveChat,
-                'interval': repeat.pollingIntervalMillis, 
-                'token': repeat.nextPageToken,
-                // 'messages': repeat.items[totalResults-1].snippet.textMessageDetails.messageText
-                'messages': repeat.items
-              },
-              // beginRecursionLogging(liveChat,repeat.pollingIntervalMillis,repeat.nextPageToken)
-            );
-          }
-        // TEMP TO VIEW DATA =================================
+          // write output to document
+          repeat.items.forEach((element, index) => {
+            stream.write(element.snippet.textMessageDetails.messageText+'\n');
+          })
+          // 'separator tone'
+          stream.write('\n=====\n=====\n\n')
+        }
     });
-  })
 }
 
   
-beginRecursionLogging = (liveChatID, interval, nextPageToken) => {
-  var stream = fs.createWriteStream('output.txt')
-  getPaginatedLiveChat(liveChatID, interval, nextPageToken)
-  .then(function(result) {
-    console.log(
-      'the old polling time was %s and the updated polling time is %s seconds', 
-      interval === undefined ? '--first run--' : result, 
-      Math.round(result.interval / 1000)
-      )
+function beginRecursionLogging(liveChatID, interval, nextPageToken) {
 
-    result.messages.forEach((element, index) => {
-      // fs.appendFileSync('output.txt', element.snippet.textMessageDetails.messageText)
-      stream.write(element.snippet.textMessageDetails.messageText+'\n')
-    })
+  (async function loop() {
+    for (let i = 0; i < maximumDailyRequests; i++) {
+      await new Promise(resolve => setTimeout(resolve, 9000));
+      console.info('======== refreshing data @ request number: %s ========', i);
+      getPaginatedLiveChat(liveChatID, nextPageToken);
+    }
+  })();
 
-    // setTimeout(function callPaginatedChatAgain() {
-      getPaginatedLiveChat(result.liveChatID, result.interval, result.nextPageToken)
-    // })
-  })
-
-
-  // getPaginatedLiveChat(liveChatID, interval, nextPageToken)
-  //   .pipe(
-  //     expand(_ => rxjs.timer(_.interval).pipe(concatMap(_ => getPaginatedLiveChat)))
-  //   ).subscribe();
-
-}
-
-beginRecursionLogging();
-
-
-// TODO
-// -- Fix data call to run at the polling time (debug)
-//
-// -- parse response
-// ------- Steps
-// ------------- 1:
-// ------------- 2:
-// ------------- 3:
-//
-function executeOnInterval(liveChat, interval, newNextPageToken, lastRunInMiliseconds) {
-  const currentTime = Date.now();
-
-  console.log(lastRunInMiliseconds)
-  console.log(currentTime)
-
-  if (lastRunInMiliseconds <= currentTime && !waitingOnRequestCompletion) {
-    console.log('executing pagination update now')
-    waitingOnRequestCompletion = true;
-
-
-
-    setInterval( function() {
-      getPaginatedLiveChat(liveChat, interval, newNextPageToken, getPaginatedLiveChat)
-    }, interval);
-  }
 }

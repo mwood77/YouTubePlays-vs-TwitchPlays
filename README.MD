@@ -4,6 +4,7 @@
 3. Install dependencies: `npm install`
 4. Throw your API key into the `package.json` file. See the following example:
     > ⚠️ **There is an existing key in the package.json file. Can I use that?** ⚠️ - Sure, but it won't work.
+    <!-- $env:APIKEY="YOUR-API-KEY-GOES-HERE"; node server.js -->
     ```
     ...
     "scripts": {
@@ -22,9 +23,8 @@
         * _this is ugly as frig, why u do dis?_
             * Because windows and this is OS agnostic. If you're super bothered by it, fix it and make a PR.
                 * Why are there so many bullet points?
-                    * **because I felt like it**
+                    * **because I'm a savage and needed a distraction**
 2. If prompted to generate new Auth token, do so.
-
 https://developers.google.com/youtube/v3/quickstart/nodejs
 
 https://nodejs.org/en/docs/guides/backpressuring-in-streams/
