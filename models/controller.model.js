@@ -1,33 +1,33 @@
 // assume controller = N64, P1
-export interface Controller {
+declare interface Controller {
     joystick: Joystick,
     directionPad?: DirectPad,
     buttons: Buttons,
     extras?: ControlCButtons,
 }
 
-export interface DirectPad {
+interface DirectPad {
     DPadUp: number,
     DPadRight: number,
     DpadDown: number,
     DPadLeft: number
 }
 
-export interface Joystick {
+interface Joystick {
     Up: number,
     Right: number,
     Down: number,
     Left: number
 }
 
-export interface ControlCButtons {
+interface ControlCButtons {
     ControlUp: number,
     ControlRight: number,
     ControlDown: number,
     ControlLeft: number
 }
 
-export interface Buttons {
+interface Buttons {
     A: number,
     B: number,
     L: number,
@@ -35,3 +35,5 @@ export interface Buttons {
     Z: number,
     Start: number,
 }
+
+export {Controller};

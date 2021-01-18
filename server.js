@@ -2,6 +2,7 @@ const fs = require('fs');
 const http = require('http');
 var readline = require('readline');
 var {google} = require('googleapis');
+const { rejects } = require('assert');
 const port = 3000;
 
 var OAuth2 = google.auth.OAuth2;
@@ -15,15 +16,16 @@ var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
     process.env.USERPROFILE) + '/.super-secrets/';
 var TOKEN_PATH = TOKEN_DIR + 'youtube-nodejs-quickstart.json';
 
-
-var TAKE_THIS_API_KEY_OUT = '';
+// var API_KEY = 'AIzaSyDlSkyNb3vUi3Jw7WusrGHqqRLrSufYrH4';
+const API_KEY = process.env.APIKEY
+const VIDEO_ID = process.env.VIDID;               // Your video id
 
 var authed;
 var running = false;
 var count = 0;
-const VIDEO_ID = process.env.VIDID;               // Your video id
 
-// import { Controller }  from './models/controller.model';
+
+// var { Controller }  = require('./models/controller');
 // import * as n64Controller  from './controller-keybinds/n64.json';
 // const controls = n64Controller;
 
@@ -141,10 +143,6 @@ function getChannel(auth) {
   });
 }
 
-// TODO
-// 1- get video by ID
-// 2 - get live chat from response
-
 function getVideoDetails(auth) {
     service.videos.list({
         auth: auth,
@@ -156,13 +154,17 @@ function getVideoDetails(auth) {
             return;
         }
         var videoDetails = response.data.items[0];
-        var chatId = videoDetails.liveStreamingDetails.activeLiveChatId;
+        const channel = videoDetails.snippet.channelTitle
+        const chatId = videoDetails.liveStreamingDetails.activeLiveChatId;
+        const videoTitle = videoDetails.snippet.title
+
         if (videoDetails == 0) {
             console.error(`No video with id ${VIDEO_ID} was found.`)
         } else {
-            console.log('Found liveChatId %s for channel %s',
-                chatId,
-                videoDetails.snippet.channelTitle);
+            console.log('======= Source =======\n Channel = %s\n Video = %s\n Live Chat Id = %s\n======================\n',
+              channel, 
+              videoTitle,
+              chatId);
             getLiveChat(chatId);
         }
     })
@@ -171,7 +173,7 @@ function getVideoDetails(auth) {
 function getLiveChat(liveChat) {
     service.liveChatMessages.list({
         auth: authed,
-        key: TAKE_THIS_API_KEY_OUT,
+        key: API_KEY,
         liveChatId: liveChat,
         part: 'snippet'
     }, function(err, response) {
@@ -185,21 +187,21 @@ function getLiveChat(liveChat) {
             console.error(`No chat with id ${liveChat} was found.`);
         } else {
             running = true;
-            console.log(`interval: ${liveChatDetails.pollingIntervalMillis}`);
             getPaginatedLiveChat(liveChat, liveChatDetails.pollingIntervalMillis, liveChatDetails.nextPageToken);
         }
     });
 }
 
-function getPaginatedLiveChat(liveChat, pollingInterval, nextPageToken) {
-    let repeatValues = {
+
+  function getPaginatedLiveChat(liveChat, pollingInterval, nextPageToken, callback) {
+    var repeatValues = {
         newNextPageToken: '',
         interval: 2000,
     };
 
     service.liveChatMessages.list({
         auth: authed,
-        key: TAKE_THIS_API_KEY_OUT,
+        key: API_KEY,
         liveChatId: liveChat,
         part: 'snippet',
         nextPageToken: nextPageToken
@@ -208,16 +210,17 @@ function getPaginatedLiveChat(liveChat, pollingInterval, nextPageToken) {
             console.error('Encountered an error retrieving repeat liveChat data: ' + err);
             return;
         }
+
         let repeat = response.data;
-        repeatValues = {
-            newNextPageToken: repeat.nextPageToken,
-            interval: repeat.pollingIntervalMillis,
-        };
+        repeatValues.nextPageToken = repeat.nextPageToken;
+        repeatValues.interval = repeat.pollingIntervalMillis;
+        
         // TEMP TO VIEW DATA =================================
         const totalResults = response.data.pageInfo.totalResults;
         if (repeat == 0) {
             console.error(`No chat with id ${liveChat} was found.`);
         } else {
+            console.info('Polling interval is: %s', repeatValues.interval);
             console.log('The last comment was %s \n',
             repeat.items[totalResults-1].snippet.textMessageDetails.messageText,
             // repeat.items[totalResults-1].snippet.authorChannelId,
@@ -227,13 +230,17 @@ function getPaginatedLiveChat(liveChat, pollingInterval, nextPageToken) {
         // TEMP TO VIEW DATA =================================
     });
 
-    if (running && count === count + 1 || count == 0) {
-        setInterval( function() {
-            console.log('interval is ' + pollingInterval);
-            getPaginatedLiveChat(liveChat, repeatValues.interval, repeatValues.newNextPageToken);
-        }, pollingInterval);
-    };
-}
+    // if (running && count === count + 1 || count == 0) {
+    //     setInterval( function() {
+    //       executeOnInterval(liveChat, repeatValues.interval, repeatValues.newNextPageToken, Date.now());
+    //     }, repeatValues.pollingInterval);
+    // };
+
+    var timestamp = Date.now()
+    // executeOnInterval(liveChat, repeatValues.interval, repeatValues.newNextPageToken, new Date(timestamp))
+  }
+
+
 
 // TODO
 // -- Fix data call to run at the polling time (debug)
@@ -244,4 +251,20 @@ function getPaginatedLiveChat(liveChat, pollingInterval, nextPageToken) {
 // ------------- 2:
 // ------------- 3:
 //
+function executeOnInterval(liveChat, interval, newNextPageToken, lastRunInMiliseconds) {
+  const currentTime = Date.now();
 
+  console.log(lastRunInMiliseconds)
+  console.log(currentTime)
+
+  if (lastRunInMiliseconds <= currentTime && !waitingOnRequestCompletion) {
+    console.log('executing pagination update now')
+    waitingOnRequestCompletion = true;
+
+
+
+    setInterval( function() {
+      getPaginatedLiveChat(liveChat, interval, newNextPageToken, getPaginatedLiveChat)
+    }, interval);
+  }
+}
