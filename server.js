@@ -24,6 +24,27 @@ var maximumDailyRequests = 10000;
 // import * as n64Controller  from './controller-keybinds/n64.json';
 // const controls = n64Controller;
 
+/**
+ *  53 bit hash, used to generate IDs for each "chat message"
+ * 
+ * Credit: bryc @ StackOverflow: https://stackoverflow.com/a/52171480/10800161
+ *
+ * @param input the string we're going to generate a hash
+ * @param seed optional - will generate alternate hashes for identical inputs
+ *
+ */
+const cyrb53 = function(input, seed = 0) {
+  let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+  for (let i = 0, ch; i < input.length; i++) {
+      ch = input.charCodeAt(i);
+      h1 = Math.imul(h1 ^ ch, 2654435761);
+      h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1>>>16), 2246822507) ^ Math.imul(h2 ^ (h2>>>13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2>>>16), 2246822507) ^ Math.imul(h1 ^ (h1>>>13), 3266489909);
+  return 4294967296 * (2097151 & h2) + (h1>>>0);
+};
+
 // Load client secrets from a local file.
 fs.readFile('client_secret.json', function processClientSecrets(err, content) {
   if (err) {
@@ -110,62 +131,47 @@ function storeToken(token) {
 }
 
 /**
- * Lists the names and IDs of up to 10 files.
+ * Gets information related to a particular video.
+ * Must be authenticated in-order to make the call.
  *
- * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
+ * @param {google.auth.OAuth2} auth The OAuth2 token.
+ * 
  */
-function getChannel(auth) {
-  var service = google.youtube('v3');
-  service.channels.list({
-    auth: auth,
-    part: 'snippet,contentDetails,statistics',
-    forUsername: 'GoogleDevelopers'
-  }, function(err, response) {
-    if (err) {
-      console.log('The API returned an error: ' + err);
-      return;
-    }
-    var channels = response.data.items;
-    if (channels.length == 0) {
-      console.log('No channel found.');
-    } else {
-      console.log('This channel\'s ID is %s. Its title is \'%s\', and ' +
-                  'it has %s views.',
-                  channels[0].id,
-                  channels[0].snippet.title,
-                  channels[0].statistics.viewCount);
-    }
-  });
-}
-
 function getVideoDetails(auth) {
-    service.videos.list({
-        auth: auth,
-        id: VIDEO_ID,
-        part: 'snippet,liveStreamingDetails'
-    }, function(err, response) {
-        if (err) {
-            console.error('Encountered an error retrieving video details: ' + err);
-            return;
-        }
-        var videoDetails = response.data.items[0];
-        const channel = videoDetails.snippet.channelTitle
-        const chatId = videoDetails.liveStreamingDetails.activeLiveChatId;
-        const videoTitle = videoDetails.snippet.title
+  service.videos.list({
+      auth: auth,
+      id: VIDEO_ID,
+      part: 'snippet,liveStreamingDetails'
+  }, function(err, response) {
+      if (err) {
+          console.error('Encountered an error retrieving video details: ' + err);
+          return;
+      }
+      let videoDetails = response.data.items[0];
+      const channel = videoDetails.snippet.channelTitle
+      const chatId = videoDetails.liveStreamingDetails.activeLiveChatId;
+      const videoTitle = videoDetails.snippet.title
 
-        if (videoDetails == 0) {
-            console.error(`No video with id ${VIDEO_ID} was found.`)
-        } else {
-            console.log('\n\n======= Source =======\n Channel = %s\n Video = %s\n Live Chat Id = %s\n======================\n\n',
-              channel, 
-              videoTitle,
-              chatId);
-            getLiveChat(chatId);
-        }
-    })
+      if (videoDetails == 0) {
+          console.error(`No video with id ${VIDEO_ID} was found.`)
+      } else {
+          console.log('\n\n======= Source =======\n Channel = %s\n Video = %s\n Live Chat Id = %s\n======================\n\n',
+            channel, 
+            videoTitle,
+            chatId);
+          getLiveChat(chatId);
+      }
+  })
 }
 
-function getLiveChat(liveChat, interval) {
+/**
+ * Gets information a live chat instance, on a live video.
+ * Must be authenticated in-order to make the call.
+ *
+ * @param liveChat the live chat session id of a live video.
+ * 
+ */
+function getLiveChat(liveChat) {
     service.liveChatMessages.list({
         auth: authed,
         key: API_KEY,
@@ -178,7 +184,6 @@ function getLiveChat(liveChat, interval) {
         }
         const liveChatDetails = response.data;
         const totalResults = response.data.pageInfo.totalResults;
-        const oldPollingTimeInteval = interval;
 
         if (liveChatDetails == 0) {
             console.error(`No chat with id ${liveChat} was found.`);
@@ -189,6 +194,18 @@ function getLiveChat(liveChat, interval) {
 }
 
 
+/**
+ * Worker function
+ * 
+ * Used by recursive call to construct 'output.txt'
+ * Must be authenticated in-order to make the call.
+ * 
+ * API returns paginated results
+ *
+ * @param liveChat the live chat session id of a live video.
+ * @param nextPageToken token passed to API to get next page of chat results.
+ * 
+ */
 function getPaginatedLiveChat(liveChat, nextPageToken) {
     service.liveChatMessages.list({
         auth: authed,
@@ -208,21 +225,40 @@ function getPaginatedLiveChat(liveChat, nextPageToken) {
         } else {
           // write output to document
           repeat.items.forEach((element, index) => {
-            stream.write(element.snippet.textMessageDetails.messageText+'\n');
+
+            const hash = cyrb53(element.snippet.textMessageDetails.messageText)
+
+            stream.write(hash + '=|=' + element.snippet.textMessageDetails.messageText+'\n', 'utf8');
           })
           // 'separator tone'
-          stream.write('\n=====\n=====\n\n')
+          // stream.write('\n=====\n=====\n\n')
+          removeDuplicates()
         }
     });
 }
 
+function removeDuplicates() {
+  try {
+    var data = fs.readFileSync('output.txt');
+
+    data = data.toString().split(/[\n '=|=']/)
+
+    let result = data.filter((item, pos) => data.indexOf(item) === pos);
+
+    console.info(result);
+    stream.write(result.join('\n'));
+
+  } catch (error) {
+    console.error('Encountered an error when checking output for duplicates: %s', error);
+  }
+}
   
 function beginRecursionLogging(liveChatID, interval, nextPageToken) {
 
   (async function loop() {
     for (let i = 0; i < maximumDailyRequests; i++) {
       await new Promise(resolve => setTimeout(resolve, 9000));
-      console.info('======== refreshing data @ request number: %s ========', i);
+      console.info('======== refreshing data @ request number: %s ========', i + 1);
       getPaginatedLiveChat(liveChatID, nextPageToken);
     }
   })();
