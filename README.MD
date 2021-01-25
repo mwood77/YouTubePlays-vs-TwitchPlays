@@ -1,3 +1,5 @@
+> FYI - this is still very much a work in progress..
+
 ## Prerequisites:
 1. Get your OAuth2 cert from the Gargler's Cloud. Don't know how? [Follow the Prerequisites and Step 1 of this tutorial](https://developers.google.com/youtube/v3/quickstart/nodejs)
 2. Copy the cert (json) you downloaded in Step 1 to `~/community-plays/super-secrets/`. Make sure the cert is named `client_secret.json`, not `client_secret_sjkdhfalkjh2398y4u23ip4.....json`
