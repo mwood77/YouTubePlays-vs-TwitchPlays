@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "tsc": "tsc",
-    "start-chat-logger": "cross-env VIDID=36YnV9STBqc APIKEY=AIzaSyDlSkyNb3vUi3Jw7WusrGHqqRLrSufYrH4 node server.js",
+    "start-chat-logger": "cross-env VIDID=36YnV9STBqc APIKEY= node server.js",
     "start-chat-logger2": "cross-env node server.js"
   },
   "type": "module",
