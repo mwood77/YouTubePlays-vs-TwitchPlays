@@ -5,7 +5,7 @@
 2. Copy the cert you downloaded (the json file) in Step 1 to `~/community-plays/`. Make sure the cert is named `client_secret.json`, not `client_secret_sjkdhfalkjh2398y4u23ip4.....com.json`
 3. Install dependencies: `npm install`
 4. Throw your API key into the `package.json` file. See the following example:
-    <!-- $env:APIKEY="YOUR-API-KEY-GOES-HERE"; node server.js -->
+    <!-- $env:APIKEY="YOUR-API-KEY-GOES-HERE"; node chat-logger.js -->
     ```
     ...
     "scripts": {

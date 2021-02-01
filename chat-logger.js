@@ -242,7 +242,13 @@ function removeDuplicates() {
     try {
         // TODO - make this into a stream
         neek.unique(readable, writable, (result) => {
-            console.info('duplicate check complete \n%s', result);
+            console.info(
+                'duplicate check complete \n' +
+                'total lines read: %s\n' +
+                'unique lines outputed: %s',
+                result.total,
+                result.unique
+            );
         });
     } catch (error) {
         console.error('Encountered an error when checking output for duplicates: %s', error);

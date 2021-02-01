@@ -1,6 +1,5 @@
 # Node
 node_modules/
-package.json
 
 # Distribution
 dist/

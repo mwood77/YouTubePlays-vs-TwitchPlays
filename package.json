@@ -2,12 +2,13 @@
   "name": "community-plays",
   "version": "0.0.1",
   "description": "Simple app that reads an input and outputs keyboard events",
-  "main": "server.js",
+  "main": "chat-logger.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "tsc": "tsc",
-    "start-chat-logger": "cross-env VIDID=36YnV9STBqc APIKEY= node server.js",
-    "start-chat-logger2": "cross-env node server.js"
+    "compile-system-controller": "tsc ./src/system-controller.ts",
+    "start-chat-logger": "cross-env VIDID=36YnV9STBqc APIKEY= node chat-logger.js",
+    "run-boot": "npm run compile-system-controller && npm run start-chat-logger"
   },
   "type": "module",
   "repository": {
