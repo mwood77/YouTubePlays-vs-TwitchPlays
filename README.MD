@@ -11,7 +11,9 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "tsc": "tsc",
-        "start-chat-logger": "cross-env VIDID=YOUR-VIDEO-ID-GOES-HERE APIKEY=YOUR-API-KEY-GOES-HERE node server"
+        "compile-system-controller": "tsc ./src/system-Controller.ts",
+        "start-chat-logger": "cross-env VIDID=YOUR-VIDEO-ID-GOES-HERE APIKEY=YOUR-API-KEY-GOES-HERE node chat-logger.js"
+        "run-boot": "npm run compile-system-controller && npm run start-chat-logger"
     }
     ...
     ```
@@ -26,7 +28,7 @@
 > as normal, and follow the prompts that appear in your terminal. Make sure you paste the generated activation
 > hash back into your active terminal.
 
-1. `npm run start-chat-logger`
+1. `npm run run-boot`
     * make sure your `VIDID` and `APIKEY` are set in your `package.json` file.
         * _this is ugly as frig, why u do dis?_
             * Because windows and this is OS agnostic. If you're all hot n' bothered by it, fix it, and make a PR.

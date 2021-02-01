@@ -1,8 +1,3 @@
-// var fs = require('fs');
-// var readline = require('readline');
-// var {google} = require('googleapis');
-// var stream = fs.createWriteStream('output.txt')
-
 import fs from 'fs';
 import readline from 'readline';
 import {google} from 'googleapis';
