@@ -1,14 +1,15 @@
 # Node
 node_modules/
+package.json
 
 # Distribution
 dist/
-output.txt
+resources/*
 
 # Secrets
-super-secrets/my*
-super-secrets/client*
-super-secrets/token*
+555-super-secrets/my*
+555-super-secrets/client*
+555-super-secrets/token*
 client_secret.json
 
 #Emu stuff
@@ -22,5 +23,5 @@ Super-Mario_64.z64
 #VSCode BS..
 .VCODE
 
-#VSCode BS..
-.idea/
+#Intellij BS..
+.idea
