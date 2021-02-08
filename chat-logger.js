@@ -1,7 +1,13 @@
-import fs from 'fs';
-import readline from 'readline';
-import {google} from 'googleapis';
-import neek from 'neek';
+// require fs  from 'fs';
+// import readline from 'readline';
+// import {google} from 'googleapis';
+// import neek from 'neek';
+
+const fs = require('fs');
+const readline = require('readline');
+const { google } = require('googleapis');
+const neek = require('neek');
+
 
 const OAuth2 = google.auth.OAuth2;
 const service = google.youtube('v3');

@@ -6,11 +6,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "tsc": "tsc",
-    "compile-system-controller": "tsc ./src/system-controller.ts",
+    "compile-system-controller": "tsc ./src/system-controller.ts --outDir ./build && node ./build/system-controller.js ",
     "start-chat-logger": "cross-env VIDID=36YnV9STBqc APIKEY= node chat-logger.js",
     "run-boot": "npm run compile-system-controller && npm run start-chat-logger"
   },
-  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mwood77/community-plays.git"

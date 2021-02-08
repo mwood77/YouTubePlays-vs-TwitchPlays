@@ -1,4 +1,4 @@
-import fs from 'fs';
+import * as fs from 'fs';
 import { ControlCButtons } from './ControlCButtons.model';
 import { Buttons } from './Buttons.model';
 import { DirectionPad } from './DirectionPad.model';
@@ -20,7 +20,7 @@ export class Controller {
     };
 
     loadJSONConfig = (source: any) => {
-        fs.readFile(source, processJSON = (error: any, data: any) => {
+        fs.readFile(source,  (error: any, data: any) => {
             this.joystick = data.joystick;
             this.directionPad = data.directionPad;
             this.buttons = data.buttons;
