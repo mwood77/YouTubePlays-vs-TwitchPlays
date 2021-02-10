@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "tsc": "tsc",
-    "compile-system-controller": "tsc ./src/system-controller.ts --outDir ./build && node ./build/system-controller.js ",
+    "compile-system-controller": "tsc ./src/system-controller.ts --outDir ./build --esModuleInterop --resolveJsonModule",
     "start-chat-logger": "cross-env VIDID=36YnV9STBqc APIKEY= node chat-logger.js",
     "run-boot": "npm run compile-system-controller && npm run start-chat-logger"
   },

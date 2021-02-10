@@ -7,8 +7,7 @@ const fs = require('fs');
 const readline = require('readline');
 const { google } = require('googleapis');
 const neek = require('neek');
-
-
+const child_process = require('child_process');
 const OAuth2 = google.auth.OAuth2;
 const service = google.youtube('v3');
 
@@ -16,19 +15,15 @@ const SCOPES = ['https://www.googleapis.com/auth/youtube.readonly'];
 let TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
   process.env.USERPROFILE) + '/.super-secrets/';
 const TOKEN_PATH = TOKEN_DIR + 'youtube-nodejs-quickstart.json';
-const API_KEY = process.env.APIKEY;
+const compiledSystemController = './build/system-controller.js';
 const VIDEO_ID = process.env.VIDID;
+const API_KEY = process.env.APIKEY;
 
 let authed;
 const maximumDailyRequests = 10000;
 const readable = './resources/unfiltered.txt';
 const writable = './resources/filtered-output.txt';
 const stream = fs.createWriteStream(readable);
-
-
-// import { Controller } from './models/controller';
-// import * as n64Controller from './controller-keybinds/n64.json';
-// const controls = n64Controller;
 
 /**
  *  53 bit hash, used to generate IDs for each "chat message"
@@ -194,6 +189,7 @@ function getLiveChat(liveChat) {
         if (liveChatDetails === 0) {
             console.error(`No chat with id ${liveChat} was found.`);
         } else {
+            child_process.exec('run node ./build/system-controller.js');
             beginRecursionLogging(liveChat, liveChatDetails.nextPageToken);
         }
     });
