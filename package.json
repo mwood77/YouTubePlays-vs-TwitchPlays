@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "tsc": "tsc",
     "compile-system-controller": "tsc ./src/system-controller.ts --outDir ./build --esModuleInterop --resolveJsonModule",
-    "start-chat-logger": "cross-env VIDID=36YnV9STBqc APIKEY= node chat-logger.js",
+    "start-chat-logger": "cross-env node chat-logger.js",
     "run-boot": "npm run compile-system-controller && npm run start-chat-logger"
   },
   "repository": {
@@ -31,7 +31,8 @@
     "google-auth-library": "^6.1.1",
     "googleapis": "^61.0.0",
     "http": "0.0.1-security",
-    "typescript": "^4.0.3"
+    "typescript": "^4.0.3",
+    "dotenv": "^12.0.0"
   },
   "devDependencies": {
     "@types/node": "^14.11.8",

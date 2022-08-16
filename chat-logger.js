@@ -3,10 +3,10 @@
 // import {google} from 'googleapis';
 // import neek from 'neek';
 
+require('dotenv').config();
 const fs = require('fs');
 const readline = require('readline');
 const { google } = require('googleapis');
-const neek = require('neek');
 const child_process = require('child_process');
 const OAuth2 = google.auth.OAuth2;
 const service = google.youtube('v3');
@@ -16,8 +16,8 @@ let TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
   process.env.USERPROFILE) + '/.super-secrets/';
 const TOKEN_PATH = TOKEN_DIR + 'youtube-nodejs-quickstart.json';
 const compiledSystemController = './build/system-controller.js';
-const VIDEO_ID = process.env.VIDID;
-const API_KEY = process.env.APIKEY;
+const VIDEO_ID = process.env.LIVE_VIDEO_ID;
+const API_KEY = process.env.API_KEY;
 
 let authed;
 const maximumDailyRequests = 10000;
@@ -166,7 +166,7 @@ function getVideoDetails(auth) {
 }
 
 /**
- * Gets information a live chat instance, on a live video.
+ * Gets information from a live chat instance, on a live video.
  * Must be authenticated in-order to make the call.
  *
  * @param liveChat the live chat session id of a live video.
@@ -230,26 +230,26 @@ function getPaginatedLiveChat(liveChat, nextPageToken) {
                 const hash = cyrb53(element.snippet.textMessageDetails.messageText)
                 stream.write(hash + '=|=' + element.snippet.textMessageDetails.messageText+'\n', 'utf8');
             });
-            removeDuplicates();
+            // removeDuplicates();
         }
     });
 }
 
 function removeDuplicates() {
-    try {
-        // TODO - make this into a stream
-        neek.unique(readable, writable, (result) => {
-            console.info(
-                'duplicate check complete \n' +
-                'total lines read: %s\n' +
-                'unique lines outputed: %s',
-                result.total,
-                result.unique
-            );
-        });
-    } catch (error) {
-        console.error('Encountered an error when checking output for duplicates: %s', error);
-    }
+    // try {
+    //     // TODO - make this into a stream
+    //     neek.unique(readable, writable, (result) => {
+    //         console.info(
+    //             'duplicate check complete \n' +
+    //             'total lines read: %s\n' +
+    //             'unique lines outputed: %s',
+    //             result.total,
+    //             result.unique
+    //         );
+    //     });
+    // } catch (error) {
+    //     console.error('Encountered an error when checking output for duplicates: %s', error);
+    // }
 }
   
 function beginRecursionLogging(liveChatID, interval, nextPageToken) {

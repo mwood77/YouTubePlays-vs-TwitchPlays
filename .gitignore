@@ -3,10 +3,10 @@ node_modules/
 
 # Distribution
 build/*
-resources/*
 
 # Secrets
 client_secret.json
+.env
 
 # Emu stuff
 /emu-rom
@@ -15,9 +15,8 @@ Super-Mario_64.z64
 
 # macOS BS..
 .DH_store
-
-# VSCode BS..
-.VCODE
+.DS_store
 
 # Intellij BS..
 .idea
+.DS_Store
