@@ -2,22 +2,22 @@
 node_modules/
 
 # Distribution
-dist/
-output.txt
+build/*
+resources/*
 
 # Secrets
-super-secrets/my*
-super-secrets/client*
-super-secrets/token*
 client_secret.json
+.env
 
-#Emu stuff
+# Emu stuff
 /emu-rom
 sixtyforce.app
 Super-Mario_64.z64
 
-#macOS BS..
+# macOS BS..
 .DH_store
+.DS_store
 
-#VSCode BS..
-.VCODE
+# Intellij BS..
+.idea
+.DS_Store

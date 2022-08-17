@@ -19,7 +19,7 @@
         "Z": 90,
         "Start": 13
     },
-    "extras": {
+    "controlCButtons": {
         "ControlUp": 73,
         "ControlRight": 76,
         "ControlDown": 75,

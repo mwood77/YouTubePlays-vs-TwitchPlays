@@ -1,14 +1,15 @@
 {
   "name": "community-plays",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Simple app that reads an input and outputs keyboard events",
-  "main": "server.js",
+  "main": "chat-logger.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "tsc": "tsc",
-    "start-chat-logger": "cross-env VIDID=36YnV9STBqc APIKEY= node server.js"
+    "compile-system-controller": "tsc ./src/system-controller.ts --outDir ./build --esModuleInterop --resolveJsonModule",
+    "start-chat-logger": "cross-env node chat-logger.js",
+    "run-boot": "npm run compile-system-controller && npm run start-chat-logger"
   },
-  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mwood77/community-plays.git"
@@ -27,15 +28,20 @@
   "homepage": "https://github.com/mwood77/community-plays#readme",
   "dependencies": {
     "@types/gapi": "0.0.39",
+    "cross-env": "^7.0.3",
+    "dotenv": "^12.0.0",
     "google-auth-library": "^6.1.1",
     "googleapis": "^61.0.0",
     "http": "0.0.1-security",
+    "robotjs": "^0.6.0",
+    "rxjs-compat": "^6.6.7",
     "typescript": "^4.0.3"
   },
   "devDependencies": {
     "@types/node": "^14.11.8",
     "async": "^3.2.0",
     "cross-env": "^7.0.3",
-    "rxjs": "^6.6.3"
+    "neek": "^1.1.2",
+    "rxjs": "^6.6.7"
   }
 }
