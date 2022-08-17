@@ -1,11 +1,7 @@
-import * as fs  from 'fs';
-import * as readline from 'readline';
 import { Controller } from './models/Controller';
 
-const readable = './resources/filtered-output.txt';
-const stream = fs.createWriteStream(readable);
-
-import {default as controllerConfig}  from '../controller-keybinds/n64.json';
+// import * as controllerKeybinds  from './controller-keybinds/';
+import NES from './controller-keybinds/NES/nes.js';
 
 export class SystemController extends Controller {
 
@@ -19,5 +15,5 @@ export class SystemController extends Controller {
 
 const system = new SystemController();
 
-system.loadJSONConfig(controllerConfig);
+system.loadControllerConfig(NES.default);
 system.fart()

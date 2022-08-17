@@ -1,4 +1,4 @@
-{
+module.exports = {
     "joystick": {
         "Up": 87,
         "Right": 68,

@@ -16,7 +16,7 @@ export class Controller {
 
 
 
-    loadJSONConfig = (source: any) => {
+    loadControllerConfig = (source: any) => {
         fs.readFile(source,  (error: any, data: any) => {
             if (error) {
                 console.error(error);

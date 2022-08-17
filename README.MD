@@ -40,3 +40,23 @@ https://developers.google.com/youtube/v3/quickstart/nodejs
 
 https://nodejs.org/en/docs/guides/backpressuring-in-streams/ 
 -->
+
+## Generating random test data
+```javascript
+const cannedArray = ['LEFT', 'RIGHT', 'ENTER'];
+const inputStack = new Set();
+const now = Date.now();
+
+function randomPosition(maxPosition) {
+    return Math.floor(Math.random() * maxPosition * Math.random());
+} 
+
+for (let i = 0; i <= 100; i++) {
+    const hashAuthor = 1491733810630004;
+    const hashMessage = 4646774944775204;
+    const time = new Date;
+    inputStack.add(hashAuthor * Math.random(100) + ':'+ hashMessage * Math.random(100) + ':' + time.getMilliseconds() + '=|=' + cannedArray[randomPosition(3)]);
+}
+
+console.log([...inputStack]);
+```
