@@ -2,10 +2,12 @@
 require('dotenv').config();
 const fs = require('fs');
 const readline = require('readline');
+const robot = require("robotjs");
 const { google } = require('googleapis');
 const child_process = require('child_process');
 const OAuth2 = google.auth.OAuth2;
 const service = google.youtube('v3');
+const { BehaviorSubject } = require('rxjs');
 
 const SCOPES = ['https://www.googleapis.com/auth/youtube.readonly'];
 let TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
@@ -17,8 +19,15 @@ const API_KEY = process.env.API_KEY;
 
 let authed;
 const maximumDailyRequests = 10000;
-const readable = './resources/unfiltered.txt';
-const stream = fs.createWriteStream(readable);
+const logFile = './resources/unfiltered.txt';
+const stream = fs.createWriteStream(logFile);
+const inputStack = new Set();
+const chatInput$ = new BehaviorSubject();
+let lastElement = {
+    id: undefined,
+    previousLastPosition: 0,
+    currentLastPosition: 0,
+};
 
 /**
  *  53 bit hash, used to generate IDs for each "chat message"
@@ -73,7 +82,7 @@ function authorize(credentials, callback) {
             callback(oauth2Client);
         }
     });
-}
+};
 
 /**
  * Get and store new token after prompting for user authorization, and then
@@ -105,7 +114,7 @@ function getNewToken(oauth2Client, callback) {
       callback(oauth2Client);
     });
   });
-}
+};
 
 /**
  * Store token to disk be used in later program executions.
@@ -124,7 +133,7 @@ function storeToken(token) {
         if (err) throw err;
         console.log('Token stored to ' + TOKEN_PATH);
     });
-}
+};
 
 /**
  * Gets information related to a particular video.
@@ -157,8 +166,8 @@ function getVideoDetails(auth) {
             chatId);
           getLiveChat(chatId);
       }
-  })
-}
+  });
+};
 
 /**
  * Gets information from a live chat instance, on a live video.
@@ -187,28 +196,22 @@ function getLiveChat(liveChat) {
             beginRecursionLogging(liveChat, null, liveChatDetails.nextPageToken);
         }
     });
-}
-
+};
 
 /**
- * Worker function
- * 
- * Used by recursive call to construct readable text file
- * Must be authenticated in-order to make the call.
- * 
- * API returns paginated results
+ * gets latest paginated chats and adds them to the input stack
  *
  * @param liveChat the live chat session id of a live video.
  * @param nextPageToken token passed to API to get next page of chat results.
  * 
  */
-function getPaginatedLiveChat(liveChat, nextPageToken) {
+function getPaginatedLiveChatAndAddChatsToInputStack(liveChat, nextPageToken) {
     service.liveChatMessages.list({
         auth: authed,
         key: API_KEY,
         liveChatId: liveChat,
         part: 'snippet',
-        nextPageToken: nextPageToken
+        pageToken: nextPageToken
     }, function(err, response) {
         if (err) {
             console.error('Encountered an error retrieving liveChat data: ' + err);
@@ -216,24 +219,55 @@ function getPaginatedLiveChat(liveChat, nextPageToken) {
         }
 
         const repeat = response.data;
+
         if (repeat === 0) {
             console.error(`No chat with id ${liveChat} was found.`);
         } else {
-            // write output to document
             repeat.items.forEach((element) => {
-                const hash = cyrb53(element.snippet.textMessageDetails.messageText)
-                stream.write(hash + '=|=' + element.snippet.textMessageDetails.messageText+'\n', 'utf8');
+                const snippet = element.snippet;
+                const hashAuthor = cyrb53(snippet.authorChannelId)
+                const hashMessage = cyrb53(snippet.textMessageDetails.messageText + snippet.authorChannelId)
+                inputStack.add(hashAuthor + ':'+ hashMessage + '=|=' + snippet.textMessageDetails.messageText, 'utf8');
             });
+            lastElement.previousLastPosition = lastElement.currentLastPosition;
+            lastElement.id = [...inputStack][[...inputStack].length - 1].split(':')[1].split('=|=')[0];   // isolate hashMessage
+            lastElement.currentLastPosition = [...inputStack].length - 1;
+
+            chatInput$.next([...inputStack].slice(lastElement.previousLastPosition, lastElement.currentLastPosition)); // emit latest chats
         }
     });
-}
+};
+
+
   
 function beginRecursionLogging(liveChatID, interval, nextPageToken) {
     (async function loop() {
         for (let i = 0; i < maximumDailyRequests; i++) {
-            await new Promise(resolve => setTimeout(resolve, 9000));
+            if (interval) {
+                await new Promise(resolve => setTimeout(resolve, interval));
+            } else {
+                await new Promise(resolve => setTimeout(resolve, 9000));
+            }
             console.info('======== refreshing data @ request number: %s ========', i + 1);
-            getPaginatedLiveChat(liveChatID, nextPageToken);
+            getPaginatedLiveChatAndAddChatsToInputStack(liveChatID, nextPageToken);
         }
     })();
-}
+};
+
+/**
+ * emit keyboard events
+ * 
+ * @param {Array} input BehaviourSubject's value
+ */
+function actionAvatar(input) {
+    console.log(input)
+    input.forEach(el => {
+        robot.typeString(el.split('=|=')[1])
+        robot.keyTap('enter');
+    });
+};
+
+chatInput$.subscribe((x) => {
+    if (x != null) actionAvatar(chatInput$.getValue());
+});
+    
