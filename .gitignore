@@ -3,6 +3,7 @@ node_modules/
 
 # Distribution
 build/*
+resources/*
 
 # Secrets
 client_secret.json

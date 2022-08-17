@@ -1,7 +1,3 @@
-// require fs  from 'fs';
-// import readline from 'readline';
-// import {google} from 'googleapis';
-// import neek from 'neek';
 
 require('dotenv').config();
 const fs = require('fs');
@@ -22,7 +18,6 @@ const API_KEY = process.env.API_KEY;
 let authed;
 const maximumDailyRequests = 10000;
 const readable = './resources/unfiltered.txt';
-const writable = './resources/filtered-output.txt';
 const stream = fs.createWriteStream(readable);
 
 /**
@@ -184,13 +179,12 @@ function getLiveChat(liveChat) {
             return;
         }
         const liveChatDetails = response.data;
-        // const totalResults = response.data.pageInfo.totalResults;
 
         if (liveChatDetails === 0) {
             console.error(`No chat with id ${liveChat} was found.`);
         } else {
             child_process.exec('run node ./build/system-controller.js');
-            beginRecursionLogging(liveChat, liveChatDetails.nextPageToken);
+            beginRecursionLogging(liveChat, null, liveChatDetails.nextPageToken);
         }
     });
 }
@@ -230,26 +224,8 @@ function getPaginatedLiveChat(liveChat, nextPageToken) {
                 const hash = cyrb53(element.snippet.textMessageDetails.messageText)
                 stream.write(hash + '=|=' + element.snippet.textMessageDetails.messageText+'\n', 'utf8');
             });
-            // removeDuplicates();
         }
     });
-}
-
-function removeDuplicates() {
-    // try {
-    //     // TODO - make this into a stream
-    //     neek.unique(readable, writable, (result) => {
-    //         console.info(
-    //             'duplicate check complete \n' +
-    //             'total lines read: %s\n' +
-    //             'unique lines outputed: %s',
-    //             result.total,
-    //             result.unique
-    //         );
-    //     });
-    // } catch (error) {
-    //     console.error('Encountered an error when checking output for duplicates: %s', error);
-    // }
 }
   
 function beginRecursionLogging(liveChatID, interval, nextPageToken) {
