@@ -8,6 +8,7 @@
     "tsc": "tsc",
     "compile-system-controller": "tsc ./src/system-controller.ts --outDir ./build --esModuleInterop --resolveJsonModule",
     "start-chat-logger": "cross-env node chat-logger.js",
+    "start-input-mapper": "node input-mapper.js",
     "run-boot": "npm run compile-system-controller && npm run start-chat-logger"
   },
   "repository": {

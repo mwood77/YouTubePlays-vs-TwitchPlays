@@ -1,78 +1,148 @@
 const robot = require("robotjs");
 
-
 function logInput(key, author) {
     author != null ?
         console.info ('action: ' + key  + '\n\tfrom user: ' + author ) :
         console.info('action: ' + key);
 }
 
-function inputMapper(key, author) {
+/**
+ * 
+ * @param {string} action key action to emit
+ * @param {number} delay duration to emit action
+ */
+function holdInput(action, modifier) {
+    // @todo - appears to be a bug with the 'analog stick' hold down
+    const delay = modifier != null ? modifier * 100 : 100
+    robot.keyToggle(action.toLowerCase(), 'down');
+    robot.setKeyboardDelay(delay);
+    robot.keyToggle(action.toLowerCase(), 'up');
+}
+/**
+ * 
+ * @param {string} action key action to emit
+ * @param {number} delay duration to emit action
+ */
+function tapOrRepititiveTapInput(action, modifier) {
+    if (modifier != null) {
+        for (let i = 0; i < modifier; i++) {
+            robot.keyToggle(action.toLowerCase(), 'down');
+            robot.setKeyboardDelay(35);
+            robot.keyToggle(action.toLowerCase(), 'up');
+        }
+    } else {
+        robot.keyToggle(action.toLowerCase(), 'down');
+        robot.setKeyboardDelay(30);
+        robot.keyToggle(action.toLowerCase(), 'up');
+    }
+}
+
+/**
+ * 
+ * @param {array} keys the keys to combo press. Position 0 is always held.
+ */
+function comboInput(keys) {
+    robot.keyToggle(keys[0].toLowerCase(), 'down',);
+    robot.setKeyboardDelay(100);
+    robot.keyToggle(keys[1].toLowerCase(), 'down');
+    robot.setKeyboardDelay(100);
+    robot.keyToggle(keys[1].toLowerCase(), 'up');
+    robot.keyToggle(keys[0].toLowerCase(), 'up');
+}
+
+function inputMapper(key, modifier, author) {
+    
+    if(key.includes('+')) {
+        const keys = key.split('+');
+        logInput(key, author);
+        comboInput(keys)
+    };
+    // @todo - add diagonal directional input (use combo?)
     const inputToUpperCase = key.toUpperCase();
     switch (inputToUpperCase) {
         case 'UP':
             logInput(key, author);
-            robot.keyToggle('up', 'down');
-            robot.setKeyboardDelay(50);
-            robot.keyToggle('up', 'up');
+            holdInput('up', modifier);
             break;
         case 'DOWN':
             logInput(key, author);
-            robot.keyToggle('down', 'down');
-            robot.setKeyboardDelay(50);
-            robot.keyToggle('down', 'up');
+            holdInput('down', modifier);
             break;
         case 'LEFT':
             logInput(key, author);
-            robot.keyToggle('left', 'down');
-            robot.setKeyboardDelay(50);
-            robot.keyToggle('left', "up");
+            holdInput('left', modifier);
             break;
         case 'RIGHT':
             logInput(key, author);
-            robot.keyToggle('right', 'down');
-            robot.setKeyboardDelay(50);
-            robot.keyToggle('right', 'up');
+            holdInput('right', modifier);
             break;
         case 'A':
             logInput(key, author);
-            robot.keyToggle('a', 'down');
-            robot.setKeyboardDelay(50);
-            robot.keyToggle('a', 'up');
+            tapOrRepititiveTapInput(key, modifier);
             break;
         case 'B':
             logInput(key, author);
-            robot.keyToggle('b', 'down');
-            robot.setKeyboardDelay(50);
-            robot.keyToggle('b', 'up');
+            tapOrRepititiveTapInput(key, modifier);
             break;
         case 'START':
             logInput(key, author);
-            robot.keyToggle('enter', 'down');
-            robot.setKeyboardDelay(50);
-            robot.keyToggle('enter', 'up');
+            tapOrRepititiveTapInput(key, modifier);
             break;
         case 'L':
             logInput(key, author);
-            robot.keyToggle('l', 'down');
-            robot.setKeyboardDelay(50);
-            robot.keyToggle('l', 'up');
+            tapOrRepititiveTapInput(key, modifier);
             break;
         case 'R':
             logInput(key, author);
-            robot.keyToggle('r', 'down');
-            robot.setKeyboardDelay(50);
-            robot.keyToggle('r', 'up');
+            tapOrRepititiveTapInput(key, modifier);
             break;
         case 'Z':
             logInput(key, author);
-            robot.keyToggle('z', 'down');
-            robot.setKeyboardDelay(50);
-            robot.keyToggle('z', 'up');
+            tapOrRepititiveTapInput(key, modifier);
             break;
         default:
             break;
     }
 }
 
-module.exports = {inputMapper};
+
+function findNumberAtIndex(string) {
+    var num = /\d/;
+    var nums = string.match(num);
+    return string.indexOf(nums);
+}
+
+/**
+ * deconstructs input. Find is modifiers are present.
+ * 
+ * @param {string} key a comma delimited string of movement actions with or without modifiers
+ * @param {string} author author of action
+ */
+function translateInput(key, author) {
+    key.split(',').forEach(e => {
+        const modifierPosition = findNumberAtIndex(e);
+        
+        if (modifierPosition < 0) {
+            // no modifier
+            inputMapper(e, null, author)
+        } else {
+            inputMapper(e.slice(0, modifierPosition), e.slice(modifierPosition, e.length), author)
+        }
+    });
+}
+
+// @todo - use to debug
+// const sampleInput = [
+//     'Z+A',
+//     'UP12,UR2,DOWN5,A15,B15',
+//     'UP',
+//     'A',
+//     'Z',
+//     'B',
+//     'UP12',
+//     'A+Z,B12,A+Z',
+//     'A+B'
+// ];
+// sampleInput.forEach(el => translateInput(el));
+
+module.exports = {translateInput};
