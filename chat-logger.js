@@ -195,8 +195,7 @@ function getLiveChat(liveChat, updateDelayInterval) {
             return;
         }
         const liveChatDetails = response.data;
-        const delayInterval = liveChatDetails.pollingIntervalMillis <= 2500 ? liveChatDetails.pollingIntervalMillis + 700 : liveChatDetails.pollingIntervalMillis;
-        console.log(delayInterval);
+        const delayInterval = liveChatDetails.pollingIntervalMillis <= 2000 ? liveChatDetails.pollingIntervalMillis + 700 : liveChatDetails.pollingIntervalMillis;
         const nextPageToken = liveChatDetails.nextPageToken;
 
         if (!updateDelayInterval) {     // ensure recursion only begins on first call

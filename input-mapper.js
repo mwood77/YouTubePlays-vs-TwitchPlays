@@ -27,19 +27,19 @@ function tapOrRepititiveTapInput(action, modifier) {
     if (modifier != null) {
         for (let i = 0; i < modifier; i++) {
             robot.keyToggle(action.toLowerCase(), 'down');
-            robot.setKeyboardDelay(35);
+            robot.setKeyboardDelay(60);
             robot.keyToggle(action.toLowerCase(), 'up');
         }
     } else {
         robot.keyToggle(action.toLowerCase(), 'down');
-        robot.setKeyboardDelay(30);
+        robot.setKeyboardDelay(60);
         robot.keyToggle(action.toLowerCase(), 'up');
     }
 }
 
 /**
  * 
- * @param {array} keys the keys to combo press. Position 0 is always held.
+ * @param {array} keys the actions to combo press. Position 0 is always held.
  */
 function comboInput(keys) {
     robot.keyToggle(keys[0].toLowerCase(), 'down',);
@@ -113,7 +113,7 @@ function findNumberAtIndex(string) {
 }
 
 /**
- * deconstructs input. Find is modifiers are present.
+ * deconstructs input. Find whether modifiers are present.
  * 
  * @param {string} key a comma delimited string of movement actions with or without modifiers
  * @param {string} author author of action
