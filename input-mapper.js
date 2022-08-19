@@ -42,18 +42,21 @@ function tapOrRepititiveTapInput(action, modifier) {
     }
 }
 
+const validInput = ['U','UP','D','DOWN','L','LEFT','R','RIGHT','A','B','START','LTRIG','RTRIG','Z','ZTRIG','CENTERCAM','CENTERCAM'];
+
 /**
  * Holds key[0] down, then toggles key[1], then release both
  * 
  * @param {array} keys the actions to combo press. Position 0 is always held.
  */
 function comboInput(keys) {
-    // keys.forEach((el, index) => el.length > 1 ? )
-    robot.keyToggle(keys[0].toLowerCase(), 'down',);
+    const sanitized = keys.flatMap(el => validInput.filter(v => v === el));
+    // @todo - improve this to handle more than 2 elements;
+    robot.keyToggle(sanitized[0].toLowerCase(), 'down',);
     robot.setKeyboardDelay(75);
-    robot.keyToggle(keys[1].toLowerCase(), 'down');
-    robot.keyToggle(keys[1].toLowerCase(), 'up');
-    robot.keyToggle(keys[0].toLowerCase(), 'up');
+    robot.keyToggle(sanitized[1].toLowerCase(), 'down');
+    robot.keyToggle(sanitized[1].toLowerCase(), 'up');
+    robot.keyToggle(sanitized[0].toLowerCase(), 'up');
 }
 
 /**
@@ -62,7 +65,7 @@ function comboInput(keys) {
  * @param {array} keys the actions to combo press. Position 0 is always held.
  */
  function centerCamera(keys) {
-     robot.setKeyboardDelay(60);
+    robot.setKeyboardDelay(60);
     robot.keyToggle(keys[0], 'down');
     robot.keyToggle(keys[0], 'up');
     robot.setKeyboardDelay(75);
@@ -87,17 +90,17 @@ function inputMapper(key, modifier, author) {
             holdInput('up', modifier);
             break;
         case 'D':
-        case 'DOWN' || 'D':
+        case 'DOWN':
             logInput(key, author);
             holdInput('down', modifier);
             break;
-        case 'LT':
-        case 'LEFT' || 'LT':
+        case 'L':
+        case 'LEFT':
             logInput(key, author);
             holdInput('left', modifier);
             break;
-        case 'RT':
-        case 'RIGHT' || 'RT':
+        case 'R':
+        case 'RIGHT':
             logInput(key, author);
             holdInput('right', modifier);
             break;
@@ -122,9 +125,11 @@ function inputMapper(key, modifier, author) {
             tapOrRepititiveTapInput(key, modifier);
             break;
         case 'Z':
+        case 'ZTRIG':
             logInput(key, author);
             tapOrRepititiveTapInput(key, modifier);
             break;
+        case 'CC':
         case 'CENTERCAM':
             // Super Mario 64 Specific
             logInput('centering camera', author);
@@ -170,25 +175,26 @@ function translateInput(key, author) {
 /**
  * Use to debug input functions
  */
-const sampleInput = [
-    'Z+A',
-    'UP30,DOWN40,RIGHT15,LEFT32,UP12',
-    'CENTERCAM',
-    'UP',
-    'A',
-    'Z',
-    'B',
-    'UP12',
-    'A+B',
-    'U23',
-    'LT45'
-];
-setTimeout(function(){
-    sampleInput.forEach(
-        el => {
-            translateInput(el)
-        }
-    );
-}, 2000);
+// const sampleInput = [
+//     'Z+tab',
+//     'Z+A',
+//     'UP30,DOWN40,RIGHT15,LEFT32,UP12',
+//     'CENTERCAM',
+//     'UP',
+//     'A',
+//     'Z',
+//     'B',
+//     'UP12',
+//     'A+B',
+//     'U23',
+//     'LT45'
+// ];
+// setTimeout(function(){
+//     sampleInput.forEach(
+//         el => {
+//             translateInput(el)
+//         }
+//     );
+// }, 2000);
 
 module.exports = {translateInput};
