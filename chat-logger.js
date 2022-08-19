@@ -2,26 +2,22 @@
 require('dotenv').config();
 const fs = require('fs');
 const readline = require('readline');
-const robot = require("robotjs");
 const { google } = require('googleapis');
 const child_process = require('child_process');
 const OAuth2 = google.auth.OAuth2;
 const service = google.youtube('v3');
 const { BehaviorSubject } = require('rxjs');
-const { inputMapper } = require('./input-mapper');
+const { translateInput } = require('./input-mapper');
 
 const SCOPES = ['https://www.googleapis.com/auth/youtube.readonly'];
 let TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
   process.env.USERPROFILE) + '/.super-secrets/';
 const TOKEN_PATH = TOKEN_DIR + 'youtube-nodejs-quickstart.json';
-const compiledSystemController = './build/system-controller.js';
 const VIDEO_ID = process.env.LIVE_VIDEO_ID;
 const API_KEY = process.env.API_KEY;
 
 let authed;
 const maximumDailyRequests = 10000;
-const logFile = './resources/unfiltered.txt';
-const stream = fs.createWriteStream(logFile);
 const inputStack = new Set();
 const chatInput$ = new BehaviorSubject();
 
@@ -29,6 +25,7 @@ let videoInformation = {
     channel: undefined,
     chatId: undefined,
     videoTitle: undefined,
+    pollingInterval: 2000,
 }
 
 let lastElement = {
@@ -195,8 +192,11 @@ function getLiveChat(liveChat, updateDelayInterval) {
             return;
         }
         const liveChatDetails = response.data;
-        const delayInterval = liveChatDetails.pollingIntervalMillis <= 2000 ? liveChatDetails.pollingIntervalMillis + 700 : liveChatDetails.pollingIntervalMillis;
+        const delayInterval = liveChatDetails.pollingIntervalMillis <= 2100 ? liveChatDetails.pollingIntervalMillis + 700 : liveChatDetails.pollingIntervalMillis;
         const nextPageToken = liveChatDetails.nextPageToken;
+        videoInformation.pollingInterval = delayInterval;
+
+        console.info('-> Current interval: ' + videoInformation.pollingInterval);
 
         if (!updateDelayInterval) {     // ensure recursion only begins on first call
             if (liveChatDetails === 0) {
@@ -258,15 +258,15 @@ function beginRecursionLogging(liveChatID, delay, nextPageToken) {
     (async function loop() {
         for (let i = 0; i < maximumDailyRequests; i++) {
             if (delay) {
-                await new Promise(resolve => setTimeout(resolve, delay));
+                await new Promise(resolve => setTimeout(resolve, videoInformation.pollingInterval));
             } else {
                 await new Promise(resolve => setTimeout(resolve, 9000));
             }
-            console.info('======== chunk: %s ========', i + 1);
+            if (i & 100 === 0 ) console.info('==== chunk: %s ====', i + 1);
             getPaginatedLiveChatAndAddChatsToInputStack(liveChatID, nextPageToken);
 
             // Update polling interval
-            if (i % 20 === 0) getLiveChat(videoInformation.chatId, true)
+            if (i % 20 === 0) getLiveChat(videoInformation.chatId, true);
         }
     })();
 };
@@ -281,7 +281,7 @@ function actionAvatar(input) {
         const content = JSON.parse(el)
         const key = content.message;
         const author = content.author;
-        inputMapper(key, author);
+        translateInput(key, author);
     });
 };
 
