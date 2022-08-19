@@ -79,7 +79,15 @@ function comboInput(keys, author) {
     }, 1500)
 }
 
-function inputMapper(key, modifier, author) {
+/**
+ * PLAYER 1 INPUT
+ * NOTE -> This is a quick and dirty implementation, until I make input mapper more generic
+ * 
+ * @param {*} key input to action
+ * @param {*} modifier used to repeat or hold 
+ * @param {*} author author of the action
+ */
+function inputMapperPlayer1(key, modifier, author) {
     if(key.includes('+')) {
         const keys = key.split('+');
         comboInput(keys, author)
@@ -114,17 +122,27 @@ function inputMapper(key, modifier, author) {
             logInput(key, author);
             tapOrRepititiveTapInput(key, modifier);
             break;
+        case 'X':
+            logInput(key, author);
+            tapOrRepititiveTapInput(key, modifier);
+            break;
+        case 'Y':
+            logInput(key, author);
+            tapOrRepititiveTapInput(key, modifier);
+            break;
         case 'START':
             logInput(key, author);
             tapOrRepititiveTapInput(key, modifier);
             break;
         case 'LTRIG':
             logInput(key, author);
-            tapOrRepititiveTapInput(key, modifier);
+            // tapOrRepititiveTapInput(key, modifier);
+            tapOrRepititiveTapInput('z', modifier);     // street fighter
             break;
         case 'RTRIG':
             logInput(key, author);
-            tapOrRepititiveTapInput(key, modifier);
+            // tapOrRepititiveTapInput(key, modifier);
+            tapOrRepititiveTapInput('c', modifier);     // street fighter
             break;
         case 'Z':
         case 'ZTRIG':
@@ -136,6 +154,79 @@ function inputMapper(key, modifier, author) {
             // Super Mario 64 Specific
             logInput('centering camera', author);
             centerCamera(['u', 'j']); // [0] = zoom in, [1] = zoom out
+            break;
+        default:
+            break;
+    }
+}
+
+/**
+ * PLAYER 2 INPUT
+ * NOTE -> This is a quick and dirty implementation, until I make input mapper more generic
+ * 
+ * @param {*} key input to action
+ * @param {*} modifier used to repeat or hold 
+ * @param {*} author author of the action
+ */
+function inputMapperPlayer2(key, modifier, author) {
+    if(key.includes('+')) {
+        const keys = key.split('+');
+        comboInput(keys, author)
+    };
+    const inputToUpperCase = key.toUpperCase();
+    switch (inputToUpperCase) {
+        case 'U': 
+        case 'UP': 
+            logInput(key, author);
+            holdInput('numpad_8', modifier);
+            break;
+        case 'D':
+        case 'DOWN':
+            logInput(key, author);
+            holdInput('numpad_2', modifier);
+            break;
+        case 'L':
+        case 'LEFT':
+            logInput(key, author);
+            holdInput('numpad_4', modifier);
+            break;
+        case 'R':
+        case 'RIGHT':
+            logInput(key, author);
+            holdInput('numpad_6', modifier);
+            break;
+        case 'A':
+            logInput(key, author);
+            tapOrRepititiveTapInput('numpad_7', modifier);
+            break;
+        case 'B':
+            logInput(key, author);
+            tapOrRepititiveTapInput('numpad_9', modifier);
+            break;
+        case 'X':
+            logInput(key, author);
+            tapOrRepititiveTapInput('numpad_1', modifier);
+            break;
+        case 'Y':
+            logInput(key, author);
+            tapOrRepititiveTapInput('numpad_3', modifier);
+            break;
+        case 'START':
+            logInput(key, author);
+            tapOrRepititiveTapInput(key, modifier);
+            break;
+        case 'LTRIG':
+            logInput(key, author);
+            tapOrRepititiveTapInput('numpad_0', modifier);
+            break;
+        case 'RTRIG':
+            logInput(key, author);
+            tapOrRepititiveTapInput('numpad_.', modifier);
+            break;
+        case 'Z':
+        case 'ZTRIG':
+            logInput(key, author);
+            tapOrRepititiveTapInput(key, modifier);
             break;
         default:
             break;
@@ -161,15 +252,17 @@ function findNumberAtIndex(string) {
  * @param {string} key a comma delimited string of movement actions with or without modifiers
  * @param {string} author author of action
  */
-function translateInput(key, author) {
+function translateInput(key, author, player) {
     key.split(',').forEach(e => {
         const modifierPosition = findNumberAtIndex(e);
         
         if (modifierPosition < 0) {
             // no modifier
-            inputMapper(e, null, author)
+            player === 1 ? inputMapperPlayer1(e, null, author) : inputMapperPlayer2(e, null, author)
         } else {
-            inputMapper(e.slice(0, modifierPosition), e.slice(modifierPosition, e.length), author)
+            player === 1 ? 
+            inputMapperPlayer1(e.slice(0, modifierPosition), e.slice(modifierPosition, e.length), author) :
+            inputMapperPlayer2(e.slice(0, modifierPosition), e.slice(modifierPosition, e.length), author)
         }
     });
 }
