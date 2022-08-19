@@ -35,8 +35,23 @@
     * make sure your `LIVE_VIDEO_ID` and `API_KEY` are set in your `.env` file.
 2. If prompted to generate new Auth token, do so. By default, this is stored at `Users/{YOUR-USER}/.super-secrets/` 
 
-<!-- 
-https://developers.google.com/youtube/v3/quickstart/nodejs
+## Generate random test data
+```javascript
+const cannedArray = ['LEFT', 'RIGHT', 'ENTER', 'UP', 'DOWN'];
+const cannedAuthorArray = ['Aida Oksana 🔺️☆', 'K_A_N_G____ ', 'vaishali', '🌾🎶🎶', 'если не указано кому обращение значит этот вопрос ко всем'];
+const inputStack = new Set();
+const now = Date.now();
 
-https://nodejs.org/en/docs/guides/backpressuring-in-streams/ 
--->
+function randomPosition(maxPosition) {
+    return Math.floor(Math.random() * maxPosition * Math.random());
+} 
+
+for (let i = 0; i <= 100; i++) {
+    const hashAuthor = 1491733810630004;
+    const hashMessage = 4646774944775204;
+    const time = new Date;
+    inputStack.add(hashAuthor * Math.random(100) + ':'+ hashMessage * Math.random(100) + ':' + time.getMilliseconds() + '=|=' + cannedArray[randomPosition(5)] + '=|='+ cannedAuthorArray[randomPosition(5)]);
+}
+
+console.log([...inputStack]);
+```

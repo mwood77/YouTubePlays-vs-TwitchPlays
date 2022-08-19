@@ -2,29 +2,33 @@
 require('dotenv').config();
 const fs = require('fs');
 const readline = require('readline');
-const robot = require("robotjs");
 const { google } = require('googleapis');
 const child_process = require('child_process');
 const OAuth2 = google.auth.OAuth2;
 const service = google.youtube('v3');
 const { BehaviorSubject } = require('rxjs');
+const { translateInput } = require('./input-mapper');
 
 const SCOPES = ['https://www.googleapis.com/auth/youtube.readonly'];
 let TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
   process.env.USERPROFILE) + '/.super-secrets/';
 const TOKEN_PATH = TOKEN_DIR + 'youtube-nodejs-quickstart.json';
-const compiledSystemController = './build/system-controller.js';
 const VIDEO_ID = process.env.LIVE_VIDEO_ID;
 const API_KEY = process.env.API_KEY;
 
 let authed;
 const maximumDailyRequests = 10000;
-const logFile = './resources/unfiltered.txt';
-const stream = fs.createWriteStream(logFile);
 const inputStack = new Set();
 const chatInput$ = new BehaviorSubject();
+
+let videoInformation = {
+    channel: undefined,
+    chatId: undefined,
+    videoTitle: undefined,
+    pollingInterval: 2000,
+}
+
 let lastElement = {
-    id: undefined,
     previousLastPosition: 0,
     currentLastPosition: 0,
 };
@@ -153,18 +157,18 @@ function getVideoDetails(auth) {
           return;
       }
       const videoDetails = response.data.items[0];
-      const channel = videoDetails.snippet.channelTitle
-      const chatId = videoDetails.liveStreamingDetails.activeLiveChatId;
-      const videoTitle = videoDetails.snippet.title
+        videoInformation.channel = videoDetails.snippet.channelTitle
+        videoInformation.chatId = videoDetails.liveStreamingDetails.activeLiveChatId;
+        videoInformation.videoTitle = videoDetails.snippet.title;
 
       if (videoDetails === 0) {
           console.error(`No video with id ${VIDEO_ID} was found.`)
       } else {
           console.log('\n\n======= Source =======\n Channel = %s\n Video = %s\n Live Chat Id = %s\n======================\n\n',
-            channel, 
-            videoTitle,
-            chatId);
-          getLiveChat(chatId);
+            videoInformation.channel, 
+            videoInformation.videoTitle,
+            videoInformation.chatId);
+          getLiveChat(videoInformation.chatId);
       }
   });
 };
@@ -176,7 +180,7 @@ function getVideoDetails(auth) {
  * @param liveChat the live chat session id of a live video.
  * 
  */
-function getLiveChat(liveChat) {
+function getLiveChat(liveChat, updateDelayInterval) {
     service.liveChatMessages.list({
         auth: authed,
         key: API_KEY,
@@ -188,12 +192,19 @@ function getLiveChat(liveChat) {
             return;
         }
         const liveChatDetails = response.data;
+        const delayInterval = liveChatDetails.pollingIntervalMillis <= 2100 ? liveChatDetails.pollingIntervalMillis + 700 : liveChatDetails.pollingIntervalMillis;
+        const nextPageToken = liveChatDetails.nextPageToken;
+        videoInformation.pollingInterval = delayInterval;
 
-        if (liveChatDetails === 0) {
-            console.error(`No chat with id ${liveChat} was found.`);
-        } else {
-            child_process.exec('run node ./build/system-controller.js');
-            beginRecursionLogging(liveChat, null, liveChatDetails.nextPageToken);
+        console.info('-> Current interval: ' + videoInformation.pollingInterval);
+
+        if (!updateDelayInterval) {     // ensure recursion only begins on first call
+            if (liveChatDetails === 0) {
+                console.error(`No chat with id ${liveChat} was found.`);
+            } else {
+                child_process.exec('run node ./build/system-controller.js');
+                beginRecursionLogging(liveChat, delayInterval, nextPageToken);
+            }
         }
     });
 };
@@ -210,7 +221,7 @@ function getPaginatedLiveChatAndAddChatsToInputStack(liveChat, nextPageToken) {
         auth: authed,
         key: API_KEY,
         liveChatId: liveChat,
-        part: 'snippet',
+        part: 'snippet, authorDetails',
         pageToken: nextPageToken
     }, function(err, response) {
         if (err) {
@@ -225,14 +236,17 @@ function getPaginatedLiveChatAndAddChatsToInputStack(liveChat, nextPageToken) {
         } else {
             repeat.items.forEach((element) => {
                 const snippet = element.snippet;
-                const hashAuthor = cyrb53(snippet.authorChannelId)
-                const hashMessage = cyrb53(snippet.textMessageDetails.messageText + snippet.authorChannelId)
-                inputStack.add(hashAuthor + ':'+ hashMessage + '=|=' + snippet.textMessageDetails.messageText, 'utf8');
+                const author = element.authorDetails ? element.authorDetails.displayName : null;
+                const time = snippet.publishedAt;
+                inputStack.add(JSON.stringify({
+                    author: author,
+                    time: time,
+                    message: snippet.textMessageDetails.messageText,
+                }));
             });
-            lastElement.previousLastPosition = lastElement.currentLastPosition;
-            lastElement.id = [...inputStack][[...inputStack].length - 1].split(':')[1].split('=|=')[0];   // isolate hashMessage
-            lastElement.currentLastPosition = [...inputStack].length - 1;
-
+            lastElement.previousLastPosition = lastElement.currentLastPosition <= 0 ? 0 : lastElement.currentLastPosition;
+            lastElement.currentLastPosition = [...inputStack].length - 1 >= 0 ? [...inputStack].length : 0;
+            
             chatInput$.next([...inputStack].slice(lastElement.previousLastPosition, lastElement.currentLastPosition)); // emit latest chats
         }
     });
@@ -240,16 +254,19 @@ function getPaginatedLiveChatAndAddChatsToInputStack(liveChat, nextPageToken) {
 
 
   
-function beginRecursionLogging(liveChatID, interval, nextPageToken) {
+function beginRecursionLogging(liveChatID, delay, nextPageToken) {
     (async function loop() {
         for (let i = 0; i < maximumDailyRequests; i++) {
-            if (interval) {
-                await new Promise(resolve => setTimeout(resolve, interval));
+            if (delay) {
+                await new Promise(resolve => setTimeout(resolve, videoInformation.pollingInterval));
             } else {
                 await new Promise(resolve => setTimeout(resolve, 9000));
             }
-            console.info('======== refreshing data @ request number: %s ========', i + 1);
+            if (i & 100 === 0 ) console.info('==== chunk: %s ====', i + 1);
             getPaginatedLiveChatAndAddChatsToInputStack(liveChatID, nextPageToken);
+
+            // Update polling interval
+            if (i % 20 === 0) getLiveChat(videoInformation.chatId, true);
         }
     })();
 };
@@ -260,10 +277,11 @@ function beginRecursionLogging(liveChatID, interval, nextPageToken) {
  * @param {Array} input BehaviourSubject's value
  */
 function actionAvatar(input) {
-    console.log(input)
     input.forEach(el => {
-        robot.typeString(el.split('=|=')[1])
-        robot.keyTap('enter');
+        const content = JSON.parse(el)
+        const key = content.message;
+        const author = content.author;
+        translateInput(key, author);
     });
 };
 
