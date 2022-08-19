@@ -2,7 +2,7 @@ const robot = require("robotjs");
 
 function logInput(key, author) {
     author != null ?
-        console.info ('action: ' + key  + '\n\tfrom user: ' + author ) :
+        console.info ('user: ' + author + '\n  action: ' + key  ) :
         console.info('action: ' + key);
 }
 
@@ -49,14 +49,17 @@ const validInput = ['U','UP','D','DOWN','L','LEFT','R','RIGHT','A','B','START','
  * 
  * @param {array} keys the actions to combo press. Position 0 is always held.
  */
-function comboInput(keys) {
+function comboInput(keys, author) {
     const sanitized = keys.flatMap(el => validInput.filter(v => v === el));
-    // @todo - improve this to handle more than 2 elements;
-    robot.keyToggle(sanitized[0].toLowerCase(), 'down',);
+    const sanitizedWithoutNumbers =  sanitized.filter(el => findNumberAtIndex(el) < 0);
+    logInput(sanitizedWithoutNumbers, author);
+    robot.keyToggle(sanitizedWithoutNumbers[0].toLowerCase(), 'down',);
     robot.setKeyboardDelay(75);
-    robot.keyToggle(sanitized[1].toLowerCase(), 'down');
-    robot.keyToggle(sanitized[1].toLowerCase(), 'up');
-    robot.keyToggle(sanitized[0].toLowerCase(), 'up');
+    sanitizedWithoutNumbers.slice(1).forEach(el => {
+        robot.keyToggle(el.toLowerCase(), 'down');
+        robot.keyToggle(el.toLowerCase(), 'up');
+    })
+    robot.keyToggle(sanitizedWithoutNumbers[0].toLowerCase(), 'up');
 }
 
 /**
@@ -79,8 +82,7 @@ function comboInput(keys) {
 function inputMapper(key, modifier, author) {
     if(key.includes('+')) {
         const keys = key.split('+');
-        logInput(key, author);
-        comboInput(keys)
+        comboInput(keys, author)
     };
     const inputToUpperCase = key.toUpperCase();
     switch (inputToUpperCase) {
@@ -176,6 +178,7 @@ function translateInput(key, author) {
  * Use to debug input functions
  */
 // const sampleInput = [
+//     'Z+A12',
 //     'Z+tab',
 //     'Z+A',
 //     'UP30,DOWN40,RIGHT15,LEFT32,UP12',
