@@ -1,6 +1,6 @@
 {
   "name": "community-plays",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Simple app that reads an input and outputs keyboard events",
   "main": "chat-logger.js",
   "scripts": {
