@@ -47,7 +47,7 @@ you can have different platforms (or livestreams) play against one another, with
 
         Here the id is dQw4w9WgXcQ
         ```
-1. Proceed to [Running a logger](#running-a-logger)
+1. Proceed to [Running a parser](#running-a-parser)
 
 ## Twitch
 1. Get the id of the channel you wish to connect to. You can extract the id from the url.
@@ -61,9 +61,9 @@ you can have different platforms (or livestreams) play against one another, with
     ```properties
     TWITCH_CHANNEL=YOUR_TWITCH_CHANNEL
     ```
-1. Proceed to [Running a logger](#running-a-logger)
+1. Proceed to [Running a parser](#running-a-parser)
 
-# Running a logger
+# Running a parser
 
 ## Youtube
 > If needed, you can delete your O2Auth token to force a new one.

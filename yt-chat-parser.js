@@ -182,7 +182,6 @@ function getLiveChat(liveChat, updateDelayInterval) {
             if (liveChatDetails === 0) {
                 console.error(`No chat with id ${liveChat} was found.`);
             } else {
-                child_process.exec('run node ./build/system-controller.js');
                 beginRecursionLogging(liveChat, delayInterval, nextPageToken);
             }
         }

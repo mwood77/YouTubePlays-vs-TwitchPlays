@@ -1,4 +1,11 @@
 const robot = require("robotjs");
+const REF = require('./resources/input-map');
+
+const validInput = [
+    'U','UP','D','DOWN','L','LEFT','R','RIGHT',
+    'A','B','X','Y','START','SELECT','LTRIG',
+    'RTRIG','Z','ZTRIG','CENTERCAM','CENTERCAM',
+];
 
 function logInput(key, author) {
     author != null ?
@@ -42,24 +49,67 @@ function tapOrRepititiveTapInput(action, modifier) {
     }
 }
 
-const validInput = ['U','UP','D','DOWN','L','LEFT','R','RIGHT','A','B','START','LTRIG','RTRIG','Z','ZTRIG','CENTERCAM','CENTERCAM'];
+/**
+ * Removes invalid inputs prior to actioning in combo calls or otherwise
+ * 
+ * @param {array} keys an array of inputs to sanitize
+ * @param {string} accessor `CONTROLLER_#` reference passed by parent function(s)
+ * @returns {array} an array of allow listed inputs
+ */
+function sanitizeInput(keys, accessor) {
+    const sanitized = keys.flatMap(el => validInput.filter(v => v === el));
+    const sanitizedWithoutNumbers = sanitized.filter(el => findNumberAtIndex(el) < 0);
+
+    return sanitizedWithoutNumbers.flatMap(el => REF.INPUT[accessor][el.toUpperCase()]);
+}
 
 /**
  * Holds key[0] down, then toggles key[1], then release both
  * 
- * @param {array} keys the actions to combo press. Position 0 is always held.
+ * @param {array} keys the actions to combo press.
+ * @param {string} author author of the action
+ * @param {array} accessor input accessor, passed from inputMapper function
  */
-function comboInput(keys, author) {
-    const sanitized = keys.flatMap(el => validInput.filter(v => v === el));
-    const sanitizedWithoutNumbers =  sanitized.filter(el => findNumberAtIndex(el) < 0);
-    logInput(sanitizedWithoutNumbers, author);
-    robot.keyToggle(sanitizedWithoutNumbers[0].toLowerCase(), 'down',);
+function comboHoldFirstInput(keys, author, accessor) {
+    const allowList = sanitizeInput(keys, accessor);
+    logInput(keys, author);
+
+    robot.keyToggle(allowList[0].toLowerCase(), 'down',);
     robot.setKeyboardDelay(75);
-    sanitizedWithoutNumbers.slice(1).forEach(el => {
+
+    allowList.slice(1).forEach(el => {
         robot.keyToggle(el.toLowerCase(), 'down');
         robot.keyToggle(el.toLowerCase(), 'up');
-    })
-    robot.keyToggle(sanitizedWithoutNumbers[0].toLowerCase(), 'up');
+    });
+
+    robot.keyToggle(allowList[0].toLowerCase(), 'up');
+}
+
+/**
+ * Iterates through a list of keys with a slight overlap between each keypress
+ * 
+ * Ex. `DOWN+RIGHT+X` to hadoken in SF2
+ * 
+ * @param {array} keys the actions to combo press.
+ * @param {string} author author of the action
+ * @param {array} accessor input accessor, passed from inputMapper function
+ */
+function comboInput(keys, author, accessor) {
+    
+    const allowList = sanitizeInput(keys, accessor);
+    robot.setKeyboardDelay(75);
+    // Prefer to log unsanitized input, 
+    // so users don't realize filtering
+    // is happenning.
+    logInput(keys, author);
+
+    allowList.forEach((el, i) => {
+        robot.keyToggle(el.toLowerCase(), 'down');
+        if (i > 0) {
+            robot.keyToggle(allowList[i - 1].toLowerCase(), 'up');
+        };
+    });
+    robot.keyToggle(allowList[allowList.length - 1].toLowerCase(), 'up');
 }
 
 /**
@@ -80,159 +130,92 @@ function comboInput(keys, author) {
 }
 
 /**
- * PLAYER 1 INPUT
- * NOTE -> This is a quick and dirty implementation, until I make input mapper more generic
+ * Emits keyboard events, or redirects to child functions to emit
+ * more complex keyboard events.
  * 
- * @param {*} key input to action
- * @param {*} modifier used to repeat or hold 
- * @param {*} author author of the action
+ * @param {string} key input to action
+ * @param {integer} modifier used to repeat or hold 
+ * @param {string|null} author author of the action
+ * @param {integer} player controller position
  */
-function inputMapperPlayer1(key, modifier, author) {
+function inputMapper(key, modifier, author, player) {
+
+    const accessor = 'CONTROLLER_' + player;
+
     if(key.includes('+')) {
-        const keys = key.split('+');
-        comboInput(keys, author)
+        comboInput(key.split('+'), author, accessor);
     };
     const inputToUpperCase = key.toUpperCase();
     switch (inputToUpperCase) {
         case 'U': 
         case 'UP': 
             logInput(key, author);
-            holdInput('up', modifier);
+            holdInput(REF.INPUT[accessor].UP, modifier);
             break;
         case 'D':
         case 'DOWN':
             logInput(key, author);
-            holdInput('down', modifier);
+            holdInput(REF.INPUT[accessor].DOWN, modifier);
             break;
         case 'L':
         case 'LEFT':
             logInput(key, author);
-            holdInput('left', modifier);
+            holdInput(REF.INPUT[accessor].LEFT, modifier);
             break;
         case 'R':
         case 'RIGHT':
             logInput(key, author);
-            holdInput('right', modifier);
+            holdInput(REF.INPUT[accessor].RIGHT, modifier);
             break;
         case 'A':
             logInput(key, author);
-            tapOrRepititiveTapInput(key, modifier);
+            tapOrRepititiveTapInput(REF.INPUT[accessor].A, modifier);
             break;
         case 'B':
             logInput(key, author);
-            tapOrRepititiveTapInput(key, modifier);
+            tapOrRepititiveTapInput(REF.INPUT[accessor].B, modifier);
             break;
         case 'X':
             logInput(key, author);
-            tapOrRepititiveTapInput(key, modifier);
+            tapOrRepititiveTapInput(REF.INPUT[accessor].X, modifier);
             break;
         case 'Y':
             logInput(key, author);
-            tapOrRepititiveTapInput(key, modifier);
+            tapOrRepititiveTapInput(REF.INPUT[accessor].Y, modifier);
             break;
         case 'START':
             logInput(key, author);
-            tapOrRepititiveTapInput(key, modifier);
+            tapOrRepititiveTapInput(REF.INPUT[accessor].START, modifier);
+            break;
+        case 'SELECT':
+            logInput(key, author);
+            tapOrRepititiveTapInput(REF.INPUT[accessor].SELECT, modifier);
             break;
         case 'LTRIG':
             logInput(key, author);
-            // tapOrRepititiveTapInput(key, modifier);
-            tapOrRepititiveTapInput('z', modifier);     // street fighter
+            tapOrRepititiveTapInput(REF.INPUT[accessor].LTRIG, modifier);
             break;
         case 'RTRIG':
             logInput(key, author);
-            // tapOrRepititiveTapInput(key, modifier);
-            tapOrRepititiveTapInput('c', modifier);     // street fighter
+            tapOrRepititiveTapInput(REF.INPUT[accessor].RTRIG, modifier);
             break;
         case 'Z':
         case 'ZTRIG':
-            logInput(key, author);
-            tapOrRepititiveTapInput(key, modifier);
             break;
+            // logInput(key, author);
+            // tapOrRepititiveTapInput(key, modifier);
+            // break;
         case 'CC':
         case 'CENTERCAM':
+            break;
             // Super Mario 64 Specific
-            logInput('centering camera', author);
-            centerCamera(['u', 'j']); // [0] = zoom in, [1] = zoom out
-            break;
+            // logInput('centering camera', author);
+            // centerCamera(['u', 'j']); // [0] = zoom in, [1] = zoom out
+            // break;
         default:
             break;
     }
 }
-
-/**
- * PLAYER 2 INPUT
- * NOTE -> This is a quick and dirty implementation, until I make input mapper more generic
- * 
- * @param {*} key input to action
- * @param {*} modifier used to repeat or hold 
- * @param {*} author author of the action
- */
-function inputMapperPlayer2(key, modifier, author) {
-    if(key.includes('+')) {
-        const keys = key.split('+');
-        comboInput(keys, author)
-    };
-    const inputToUpperCase = key.toUpperCase();
-    switch (inputToUpperCase) {
-        case 'U': 
-        case 'UP': 
-            logInput(key, author);
-            holdInput('numpad_8', modifier);
-            break;
-        case 'D':
-        case 'DOWN':
-            logInput(key, author);
-            holdInput('numpad_2', modifier);
-            break;
-        case 'L':
-        case 'LEFT':
-            logInput(key, author);
-            holdInput('numpad_4', modifier);
-            break;
-        case 'R':
-        case 'RIGHT':
-            logInput(key, author);
-            holdInput('numpad_6', modifier);
-            break;
-        case 'A':
-            logInput(key, author);
-            tapOrRepititiveTapInput('numpad_7', modifier);
-            break;
-        case 'B':
-            logInput(key, author);
-            tapOrRepititiveTapInput('numpad_9', modifier);
-            break;
-        case 'X':
-            logInput(key, author);
-            tapOrRepititiveTapInput('numpad_1', modifier);
-            break;
-        case 'Y':
-            logInput(key, author);
-            tapOrRepititiveTapInput('numpad_3', modifier);
-            break;
-        case 'START':
-            logInput(key, author);
-            tapOrRepititiveTapInput(key, modifier);
-            break;
-        case 'LTRIG':
-            logInput(key, author);
-            tapOrRepititiveTapInput('numpad_0', modifier);
-            break;
-        case 'RTRIG':
-            logInput(key, author);
-            tapOrRepititiveTapInput('numpad_.', modifier);
-            break;
-        case 'Z':
-        case 'ZTRIG':
-            logInput(key, author);
-            tapOrRepititiveTapInput(key, modifier);
-            break;
-        default:
-            break;
-    }
-}
-
 
 /**
  * Locates the position of a number within a string. If no number is present, -1 is returned.
@@ -250,19 +233,18 @@ function findNumberAtIndex(string) {
  * deconstructs input. Find whether modifiers are present.
  * 
  * @param {string} key a comma delimited string of movement actions with or without modifiers
- * @param {string} author author of action
+ * @param {string|null} author author of action
+ * @param {integer} player controller position
  */
 function translateInput(key, author, player) {
     key.split(',').forEach(e => {
-        const modifierPosition = findNumberAtIndex(e);
+        const multiplyerPosition = findNumberAtIndex(e);
         
-        if (modifierPosition < 0) {
+        if (multiplyerPosition < 0) {
             // no modifier
-            player === 1 ? inputMapperPlayer1(e, null, author) : inputMapperPlayer2(e, null, author)
+            inputMapper(e, null, author, player);
         } else {
-            player === 1 ? 
-            inputMapperPlayer1(e.slice(0, modifierPosition), e.slice(modifierPosition, e.length), author) :
-            inputMapperPlayer2(e.slice(0, modifierPosition), e.slice(modifierPosition, e.length), author)
+            inputMapper(e.slice(0, multiplyerPosition), e.slice(multiplyerPosition, e.length), author, player);
         }
     });
 }
@@ -271,26 +253,27 @@ function translateInput(key, author, player) {
  * Use to debug input functions
  */
 // const sampleInput = [
-//     'Z+A12',
-//     'Z+tab',
-//     'Z+A',
-//     'UP30,DOWN40,RIGHT15,LEFT32,UP12',
-//     'CENTERCAM',
-//     'UP',
-//     'A',
-//     'Z',
-//     'B',
-//     'UP12',
-//     'A+B',
-//     'U23',
-//     'LT45'
+    // 'DOWN+LEFT+RTRIG',
+    // 'DOWN+RIGHT+X',
+    // 'DOWN+LEFT+X',
+    // 'UP15',
+    // 'A12',
+    // 'B12',
+    // 'X12',
+    // 'Y12',
+    // 'LTRIG12',
+    // 'RTRIG12',
+    // 'START6',
 // ];
 // setTimeout(function(){
 //     sampleInput.forEach(
 //         el => {
-//             translateInput(el)
+//             translateInput(el, 'test_input_1', 1)
+//             // translateInput(el, 'test_input_2', 2)
 //         }
 //     );
 // }, 2000);
 
-module.exports = {translateInput};
+module.exports = { 
+    translateInput 
+};
