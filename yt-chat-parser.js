@@ -13,6 +13,7 @@ const SCOPES = ['https://www.googleapis.com/auth/youtube.readonly'];
 let TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
   process.env.USERPROFILE) + '/.super-secrets/';
 const TOKEN_PATH = TOKEN_DIR + 'youtube-nodejs-quickstart.json';
+const CONTROLLER = process.env.YOUTUBE_CONTROLLER;
 const VIDEO_ID = process.env.LIVE_VIDEO_ID;
 const API_KEY = process.env.API_KEY;
 
@@ -31,27 +32,6 @@ let videoInformation = {
 let lastElement = {
     previousLastPosition: 0,
     currentLastPosition: 0,
-};
-
-/**
- *  53 bit hash, used to generate IDs for each "chat message"
- * 
- * Credit: bryc @ StackOverflow: https://stackoverflow.com/a/52171480/10800161
- *
- * @param input the string we're going to generate a hash
- * @param seed optional - will generate alternate hashes for identical inputs
- *
- */
-const cyrb53 = function(input, seed = 0) {
-    let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
-    for (let i = 0, ch; i < input.length; i++) {
-        ch = input.charCodeAt(i);
-        h1 = Math.imul(h1 ^ ch, 2654435761);
-        h2 = Math.imul(h2 ^ ch, 1597334677);
-    }
-    h1 = Math.imul(h1 ^ (h1>>>16), 2246822507) ^ Math.imul(h2 ^ (h2>>>13), 3266489909);
-    h2 = Math.imul(h2 ^ (h2>>>16), 2246822507) ^ Math.imul(h1 ^ (h1>>>13), 3266489909);
-    return 4294967296 * (2097151 & h2) + (h1>>>0);
 };
 
 // Load client secrets from a local file.
@@ -202,7 +182,6 @@ function getLiveChat(liveChat, updateDelayInterval) {
             if (liveChatDetails === 0) {
                 console.error(`No chat with id ${liveChat} was found.`);
             } else {
-                child_process.exec('run node ./build/system-controller.js');
                 beginRecursionLogging(liveChat, delayInterval, nextPageToken);
             }
         }
@@ -281,7 +260,7 @@ function actionAvatar(input) {
         const content = JSON.parse(el)
         const key = content.message;
         const author = content.author;
-        translateInput(key, author);
+        translateInput(key, author, CONTROLLER);
     });
 };
 

@@ -3,7 +3,6 @@ node_modules/
 
 # Distribution
 build/*
-resources/*
 
 # Secrets
 client_secret.json
@@ -15,9 +14,9 @@ sixtyforce.app
 Super-Mario_64.z64
 
 # macOS BS..
-.DH_store
-.DS_store
+.DH_Store
+.DS_Store
 
 # Intellij BS..
 .idea
-.DS_Store
+*.DS

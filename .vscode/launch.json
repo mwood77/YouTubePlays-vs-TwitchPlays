@@ -1,15 +1,21 @@
 {
-    "version": "0.3.0",
+    "version": "0.4.0",
     "configurations": [
       {
-        "command": "npm run start-chat-logger",
-        "name": "run logger",
+        "command": "npm run start-yt",
+        "name": "youtube debug",
+        "request": "launch",
+        "type": "node-terminal"
+      },
+      {
+        "command": "npm run start-twitch",
+        "name": "twitch debug",
         "request": "launch",
         "type": "node-terminal"
       },
       {
         "command": "npm run start-input-mapper",
-        "name": "run mapper",
+        "name": "debug input mapper",
         "request": "launch",
         "type": "node-terminal"
       }

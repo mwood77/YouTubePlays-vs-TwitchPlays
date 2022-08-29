@@ -1,41 +1,87 @@
-## Prerequisites:
+# Twitch Vs Youtube
+## What this is
+This is a collection of applications which integrate with Twitch's IRC server and Youtube's Data V3 API, to provide near real time "player input." 
+
+Players participate by sending chat messages through Youtube LIVE or Twitch's chat box. Because of the division between chat parsers, this allows us to assign each platform a different input (controller); 
+you can have different platforms (or livestreams) play against one another, without any remote code execution.
+
+## What this (guide) isn't
+- I strongly advise that you have a basic understanding of JavaScript / Node before you use this
+- You must figure out how you plan to interface this with other software (games, interactive software, microcontrollers, etc). There is a basic keyboard event emitter/mapper included.
+- This was written with *nix systems in mind. It should be Windows compatible, but I haven't checked.
+
+# Setup
+1. Duplicate the `.env.sample` file and rename it to `.env`
+    - This new `.env` file will be gitignored, but **make sure you do not publicize any data contained in this file!**
+1. Assign controllers to the stream/platform.
+    - Example where player 1 is youtube and player 2 is twitch
+        ```properties
+        # PLAYER CONTROLLER
+        YOUTUBE_CONTROLLER=1
+        TWITCH_CONTROLLER=2
+        ```
+1. Install project dependencies: 
+    ```shell
+    npm install
+    ```
+
+## Youtube
 1. Get your credentials:
-    - You'll need an OAuth2 cert from the Google Cloud. [Don't know how? Follow the Prerequisites and Step 1 of this tutorial](https://developers.google.com/youtube/v3/quickstart/nodejs)
+    - You'll need an OAuth2 cert from Google Cloud. [Don't know how? Follow the Prerequisites and Step 1 of this tutorial](https://developers.google.com/youtube/v3/quickstart/nodejs)
     - You'll also need to generate an API key for this Google Cloud project. **Make sure to restrict the key to `YouTube Data API v3`**
-2. Copy the cert you downloaded (the json file) in Step 1 to 
+1. Copy the cert you downloaded (the json file) in Step 1 to 
     ```
     ~/community-plays/
     ```
-    Make sure the cert is named 
-    ```
-    client_secret.json
-    ```
-    and not something like...
-    ```
-    client_secret_sjkdhfalkjh2398y4u23ip4.....com.json
-    ```
-3. Install dependencies: `npm install`
-4. Throw your API key into the `.env` file. See the following example:
-    ```
-    API_KEY=YOUR_YOUTUBE_API_KEY
-    LIVE_VIDEO_ID=THE_ID_OF_THE_LIVE_VIDEO (ex. 36YnV9STBqc)
-    ```
-5. Proceed to [Run it](#run-it)
+    - Make sure the cert is named `client_secret.json` and not something like `client_secret_sjkdhfalkjh2398y4u23ip4.....com.json`
+1. Throw your API key into the `.env` file. 
+    - See the following example:
+        ```properties
+        API_KEY=YOUR_YOUTUBE_API_KEY
+        LIVE_VIDEO_ID=THE_ID_OF_THE_LIVE_VIDEO (ex. 36YnV9STBqc)
+        ```
+    - The live video id can be taken out of the URL, but **it must be active and a livestream.** The id follows the `v=` parameter in the url.
+        ```sh
+        Example:
+        https://www.youtube.com/watch?v=dQw4w9WgXcQ
 
-## Run it
+        Here the id is dQw4w9WgXcQ
+        ```
+1. Proceed to [Running a parser](#running-a-parser)
+
+## Twitch
+1. Get the id of the channel you wish to connect to. You can extract the id from the url.
+    ```sh
+    Example:
+    https://www.twitch.tv/twitchplayspokemon
+
+    Here the id is twitchplayspokemon
+    ```
+1. Add the channel id to the `.env` file
+    ```properties
+    TWITCH_CHANNEL=YOUR_TWITCH_CHANNEL
+    ```
+1. Proceed to [Running a parser](#running-a-parser)
+
+# Running a parser
+
+## Youtube
 > If needed, you can delete your O2Auth token to force a new one.
-> The token should be located at: `Users/{YOU}/super-secrets/youtube-nodejs-whatever.json`
+> The token should be located at: `Users/{YOUR-USER}/.super-secrets/`
 
 > If this is the first time you're running the application,
 > you'll need to authorize it via google cloud. Simply run this application 
-> as normal, and follow the prompts that appear in your terminal. Make sure you paste the generated activation
+> as normal and follow the prompts that appear in your terminal. Make sure you paste the generated activation
 > hash back into your active terminal.
 
-1. `npm run start-chat-logger`
+1. `npm run start-yt`
     * make sure your `LIVE_VIDEO_ID` and `API_KEY` are set in your `.env` file.
-2. If prompted to generate new Auth token, do so. By default, this is stored at `Users/{YOUR-USER}/.super-secrets/` 
+2. If prompted to generate a new Auth token, do so. By default this is stored at `Users/{YOUR-USER}/.super-secrets/`
 
-## Generate random test data
+## Twitch
+1. `npm run start-twitch`
+
+# Generate random test data
 ```javascript
 const cannedArray = ['LEFT', 'RIGHT', 'ENTER', 'UP', 'DOWN'];
 const cannedAuthorArray = ['Aida Oksana 🔺️☆', 'K_A_N_G____ ', 'vaishali', '🌾🎶🎶', 'если не указано кому обращение значит этот вопрос ко всем'];
