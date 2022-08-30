@@ -1,6 +1,6 @@
 {
   "name": "community-plays",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Simple app that reads an input and outputs keyboard events",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -34,7 +34,6 @@
     "google-auth-library": "^6.1.1",
     "googleapis": "^61.0.0",
     "http": "0.0.1-security",
-    "robotjs": "^0.6.0",
     "rxjs-compat": "^6.6.7",
     "tmi.js": "^1.8.5",
     "typescript": "^4.0.3"
@@ -43,6 +42,7 @@
     "@types/node": "^14.11.8",
     "async": "^3.2.0",
     "cross-env": "^7.0.3",
+    "robotjs": "^0.6.0",
     "rxjs": "^6.6.7"
   }
 }
