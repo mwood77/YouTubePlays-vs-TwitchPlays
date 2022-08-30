@@ -1,4 +1,4 @@
-# Twitch Vs Youtube
+# Twitch vs Youtube
 ## What this is
 This is a collection of applications which integrate with Twitch's IRC server and Youtube's Data V3 API, to provide near real time "player input." 
 
