@@ -3,13 +3,9 @@
   "version": "2.1.1",
   "description": "Simple app that reads an input and outputs keyboard events",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "tsc": "tsc",
-    "compile-system-controller": "tsc ./src/system-controller.ts --outDir ./build --esModuleInterop --resolveJsonModule",
     "start-yt": "cross-env node yt-chat-parser.js",
     "start-twitch": "cross-env node twitch-chat-parser.js",
-    "start-input-mapper": "node input-mapper.js",
-    "run-boot": "npm run compile-system-controller && npm run start-chat-logger"
+    "start-input-mapper": "node input-mapper.js"
   },
   "repository": {
     "type": "git",

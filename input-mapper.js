@@ -144,8 +144,8 @@ function inputMapper(key, modifier, author, player) {
 
     if(key.includes('+')) {
         comboInput(key.split('+'), author, accessor);
-    }x;
-x    const inputToUpperCase = key.toUpperCase();
+    };
+    const inputToUpperCase = key.toUpperCase();
     switch (inputToUpperCase) {
         case 'U': 
         case 'UP': 
@@ -252,10 +252,10 @@ function translateInput(key, author, player) {
 /**
  * Use to debug input functions
  */
-const sampleInput = [
+// const sampleInput = [
 //     'LEFT15,DOWN+RIGHT+X,UP+A10',
-        'DOWN+LEFT+X',
-        'down+right+x'
+        // 'DOWN+LEFT+X',
+        // 'down+right+x'
 //     // 'UP15',
 //     // 'A12',
 //     // 'B12',
@@ -264,15 +264,15 @@ const sampleInput = [
 //     // 'LTRIG12',
 //     // 'RTRIG12',
 //     // 'START6',
-];
-setTimeout(function(){
-    sampleInput.forEach(
-        el => {
-            translateInput(el, 'test_input_1', 1)
-            // translateInput(el, 'test_input_2', 2)
-        }
-    );
-}, 2000);
+// ];
+// setTimeout(function(){
+//     sampleInput.forEach(
+//         el => {
+//             translateInput(el, 'test_input_1', 1)
+//             // translateInput(el, 'test_input_2', 2)
+//         }
+//     );
+// }, 2000);
 
 module.exports = { 
     translateInput 
