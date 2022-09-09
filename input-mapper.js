@@ -4,7 +4,7 @@ const REF = require('./resources/input-map');
 const validInput = [
     'U','UP','D','DOWN','L','LEFT','R','RIGHT',
     'A','B','X','Y','START','SELECT','LTRIG',
-    'RTRIG','Z','ZTRIG','CENTERCAM','CENTERCAM',
+    'RTRIG','Z','ZTRIG','CENTERCAM',
 ];
 
 function logInput(key, author) {
@@ -19,7 +19,7 @@ function logInput(key, author) {
  * Example, 60ms * 15 = button held for 900ms.
  * 
  * @param {string} action key action to emit
- * @param {number} delay duration to emit action
+ * @param {number} modifier duration to emit action
  */
 function holdInput(action, modifier) {
     for (let i = 0; i <= modifier; i++) {
@@ -33,7 +33,7 @@ function holdInput(action, modifier) {
  * it'll tap the action a modifier amount of times
  * 
  * @param {string} action key action to emit
- * @param {number} delay duration to emit action
+ * @param {number} modifier duration to emit action
  */
 function tapOrRepititiveTapInput(action, modifier) {
     if (modifier != null) {
@@ -57,7 +57,7 @@ function tapOrRepititiveTapInput(action, modifier) {
  * @returns {array} an array of allow listed inputs
  */
 function sanitizeInput(keys, accessor) {
-    const sanitized = keys.flatMap(el => validInput.filter(v => v === el));
+    const sanitized = keys.flatMap(el => validInput.filter(v => v === el.toUpperCase()));
     const sanitizedWithoutNumbers = sanitized.filter(el => findNumberAtIndex(el) < 0);
 
     return sanitizedWithoutNumbers.flatMap(el => REF.INPUT[accessor][el.toUpperCase()]);
@@ -253,17 +253,17 @@ function translateInput(key, author, player) {
  * Use to debug input functions
  */
 // const sampleInput = [
-    // 'DOWN+LEFT+RTRIG',
-    // 'DOWN+RIGHT+X',
-    // 'DOWN+LEFT+X',
-    // 'UP15',
-    // 'A12',
-    // 'B12',
-    // 'X12',
-    // 'Y12',
-    // 'LTRIG12',
-    // 'RTRIG12',
-    // 'START6',
+//     'LEFT15,DOWN+RIGHT+X,UP+A10',
+        // 'DOWN+LEFT+X',
+        // 'down+right+x'
+//     // 'UP15',
+//     // 'A12',
+//     // 'B12',
+//     // 'X12',
+//     // 'Y12',
+//     // 'LTRIG12',
+//     // 'RTRIG12',
+//     // 'START6',
 // ];
 // setTimeout(function(){
 //     sampleInput.forEach(

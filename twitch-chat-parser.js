@@ -10,11 +10,6 @@ const client = new tmi.Client({
         debug: false,
         messagesLogLevel: 'warn',
     },
-    logger: {
-        info: (msg) => console.info(msg),
-        warn: (msg) => console.warn(msg),
-        error: (msg) => console.error(msg),
-    }
 });
 
 
