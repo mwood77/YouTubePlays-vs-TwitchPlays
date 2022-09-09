@@ -57,7 +57,7 @@ function tapOrRepititiveTapInput(action, modifier) {
  * @returns {array} an array of allow listed inputs
  */
 function sanitizeInput(keys, accessor) {
-    const sanitized = keys.flatMap(el => validInput.filter(v => v === el));
+    const sanitized = keys.flatMap(el => validInput.filter(v => v === el.toUpperCase()));
     const sanitizedWithoutNumbers = sanitized.filter(el => findNumberAtIndex(el) < 0);
 
     return sanitizedWithoutNumbers.flatMap(el => REF.INPUT[accessor][el.toUpperCase()]);
@@ -144,8 +144,8 @@ function inputMapper(key, modifier, author, player) {
 
     if(key.includes('+')) {
         comboInput(key.split('+'), author, accessor);
-    };
-    const inputToUpperCase = key.toUpperCase();
+    }x;
+x    const inputToUpperCase = key.toUpperCase();
     switch (inputToUpperCase) {
         case 'U': 
         case 'UP': 
@@ -252,10 +252,10 @@ function translateInput(key, author, player) {
 /**
  * Use to debug input functions
  */
-// const sampleInput = [
+const sampleInput = [
 //     'LEFT15,DOWN+RIGHT+X,UP+A10',
-//     // 'DOWN+RIGHT+X',
-//     // 'DOWN+LEFT+X',
+        'DOWN+LEFT+X',
+        'down+right+x'
 //     // 'UP15',
 //     // 'A12',
 //     // 'B12',
@@ -264,15 +264,15 @@ function translateInput(key, author, player) {
 //     // 'LTRIG12',
 //     // 'RTRIG12',
 //     // 'START6',
-// ];
-// setTimeout(function(){
-//     sampleInput.forEach(
-//         el => {
-//             translateInput(el, 'test_input_1', 1)
-//             // translateInput(el, 'test_input_2', 2)
-//         }
-//     );
-// }, 2000);
+];
+setTimeout(function(){
+    sampleInput.forEach(
+        el => {
+            translateInput(el, 'test_input_1', 1)
+            // translateInput(el, 'test_input_2', 2)
+        }
+    );
+}, 2000);
 
 module.exports = { 
     translateInput 
