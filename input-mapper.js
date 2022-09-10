@@ -7,6 +7,20 @@ const validInput = [
     'RTRIG','Z','ZTRIG','CENTERCAM',
 ];
 
+const controllerStates = {
+    connected : {
+        1: true,
+        2: true,
+    },
+    time: 0,
+};
+
+/**
+ * logs keypresses and author to console.
+ * 
+ * @param {string} key the input
+ * @param {string?} author youtube or twitch username (if available)
+ */
 function logInput(key, author) {
     author != null ?
         console.info ('user: ' + author + '\n  action: ' + key  ) :
@@ -142,6 +156,8 @@ function inputMapper(key, modifier, author, player) {
 
     const accessor = 'CONTROLLER_' + player;
 
+    if (!controllerStates.connected[player] && Date.now() < controllerStates.time + 7000) return;
+
     if(key.includes('+')) {
         comboInput(key.split('+'), author, accessor);
     };
@@ -212,9 +228,33 @@ function inputMapper(key, modifier, author, player) {
             // logInput('centering camera', author);
             // centerCamera(['u', 'j']); // [0] = zoom in, [1] = zoom out
             // break;
+        case 'QUIT-IT':
+        case 'IM-CALLING-MOM':
+        case 'STOP-IT':
+        case 'MOOOOOOOOOOM':
+            unplugController(player);
+            break;
+
         default:
             break;
     }
+}
+
+/**
+ * 'Unplugs the controller' of the opposite player
+ *  by disabling input.
+ * 
+ * @param {integer} player controller posotion
+ */
+function unplugController(player) {
+    // map to opposite player of unplug requested by
+    const enemy = player === 1 ? 2 : 1
+    if (controllerStates.connected[enemy]) {
+        controllerStates.connected[enemy] = !controllerStates.connected[enemy];
+        controllerStates.time = Date.now();
+    }
+    logInput(`🎮 - CONTROLLER ${enemy} UNPLUGGED! - 🎮`);
+    logInput(`🎮 - Go get mom or wait 7 seconds! - 🎮`);
 }
 
 /**
@@ -252,24 +292,64 @@ function translateInput(key, author, player) {
 /**
  * Use to debug input functions
  */
-// const sampleInput = [
-//     'LEFT15,DOWN+RIGHT+X,UP+A10',
-        // 'DOWN+LEFT+X',
-        // 'down+right+x'
-//     // 'UP15',
-//     // 'A12',
-//     // 'B12',
-//     // 'X12',
-//     // 'Y12',
-//     // 'LTRIG12',
-//     // 'RTRIG12',
-//     // 'START6',
+// const sampleInput1 = [
+//     'DOWN+LEFT+X',
+//     'down+right+x',
+//     'UP15',
+//     'IM-CALLING-MOM',
+//     'A12',
+//     'down+right+x',
+//     'B12',
+//     'down+right+x',
+//     'START6',
+//     'DOWN+LEFT+X',
+//     'down+right+x',
+//     'UP15',
+//     'A12',
+//     'down+right+x',
+//     'B12',
+//     'down+right+x',
+//     'START6',
 // ];
+
+// const sampleInput2 = [
+//     'UP15',
+//     'A12',
+//     'down+right+x',
+//     'B12',
+//     'LEFT15,DOWN+RIGHT+X,UP+A10,A12,B12,down+right+x',
+//     'X12',
+//     'Y12',
+//     'down+right+x',
+//     'START6',
+//     'down+right+x',
+//     'UP15',
+//     'A12',
+//     'down+right+x',
+//     'B12',
+//     'LEFT15,DOWN+RIGHT+X,UP+A10,A12,B12,down+right+x',
+//     'X12',
+//     'Y12',
+//     'down+right+x',
+//     'START6',
+//     'down+right+x',
+//     'UP15',
+//     'A12',
+//     'down+right+x',
+//     'B12',
+//     'LEFT15,DOWN+RIGHT+X,UP+A10,A12,B12,down+right+x',
+//     'X12',
+//     'Y12',
+//     'down+right+x',
+//     'START6',
+//     'down+right+x',
+// ];
+
 // setTimeout(function(){
-//     sampleInput.forEach(
-//         el => {
-//             translateInput(el, 'test_input_1', 1)
-//             // translateInput(el, 'test_input_2', 2)
+//     sampleInput1.forEach(
+//         (el, i) => {
+//             translateInput(el, 'INPUT-1', 1);
+//             translateInput(sampleInput2[i], 'INPUT-2', 2);
 //         }
 //     );
 // }, 2000);
