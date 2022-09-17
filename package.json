@@ -1,6 +1,6 @@
 {
   "name": "community-plays",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Simple app that reads an input and outputs keyboard events",
   "scripts": {
     "start-yt": "cross-env node yt-chat-parser.js",
