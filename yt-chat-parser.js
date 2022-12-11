@@ -3,10 +3,10 @@ require('dotenv').config();
 const fs = require('fs');
 const readline = require('readline');
 const { google } = require('googleapis');
-const child_process = require('child_process');
 const OAuth2 = google.auth.OAuth2;
 const service = google.youtube('v3');
 const { BehaviorSubject } = require('rxjs');
+const { LiveChat } = require('youtube-chat');
 const { translateInput } = require('./input-mapper');
 
 const SCOPES = ['https://www.googleapis.com/auth/youtube.readonly'];
@@ -17,9 +17,9 @@ const CONTROLLER = process.env.YOUTUBE_CONTROLLER;
 const VIDEO_ID = process.env.LIVE_VIDEO_ID;
 const API_KEY = process.env.API_KEY;
 
+const liveChat = new LiveChat({liveId: VIDEO_ID});
+
 let authed;
-const maximumDailyRequests = 10000;
-const inputStack = new Set();
 const chatInput$ = new BehaviorSubject();
 
 let videoInformation = {
@@ -28,11 +28,6 @@ let videoInformation = {
     videoTitle: undefined,
     pollingInterval: 10000,
 }
-
-let lastElement = {
-    previousLastPosition: 0,
-    currentLastPosition: 0,
-};
 
 // Load client secrets from a local file.
 fs.readFile('client_secret.json', function processClientSecrets(err, content) {
@@ -138,15 +133,17 @@ function getVideoDetails(auth) {
       }
       const videoDetails = response.data.items[0];
         videoInformation.channel = videoDetails.snippet.channelTitle
-        videoInformation.chatId = videoDetails.liveStreamingDetails.activeLiveChatId;
         videoInformation.videoTitle = videoDetails.snippet.title;
+        videoInformation.videoId = videoDetails.id;
+        videoInformation.chatId = videoDetails.liveStreamingDetails.activeLiveChatId;
 
       if (videoDetails === 0) {
           console.error(`No video with id ${VIDEO_ID} was found.`)
       } else {
-          console.log('\n\n======= Source =======\n Channel = %s\n Video = %s\n Live Chat Id = %s\n======================\n\n',
+          console.log('\n\n======= Source =======\n Channel = %s\n Video = %s\n Video ID = %s\n Live Chat Id = %s\n======================\n\n',
             videoInformation.channel, 
             videoInformation.videoTitle,
+            videoInformation.videoId,
             videoInformation.chatId);
           getLiveChat(videoInformation.chatId);
       }
@@ -177,71 +174,41 @@ function getLiveChat(liveChat) {
         if (liveChatDetails === 0) {
             console.error(`No chat with id ${liveChat} was found.`);
         } else {
-            beginRecursionLogging(liveChat, nextPageToken);
+            handleLiveChatEvents(liveChat, nextPageToken);
         }
     });
 };
-
-/**
- * gets latest paginated chats and adds them to the input stack
- *
- * @param liveChat the live chat session id of a live video.
- * @param nextPageToken token passed to API to get next page of chat results.
- * 
- */
-function getPaginatedLiveChatAndAddChatsToInputStack(liveChat, nextPageToken) {
-    service.liveChatMessages.list({
-        auth: authed,
-        key: API_KEY,
-        liveChatId: liveChat,
-        part: 'snippet, authorDetails',
-        pageToken: nextPageToken
-    }, function(err, response) {
-        if (err) {
-            console.error('Encountered an error retrieving liveChat data: ' + err);
-            return;
-        }
-
-        const repeat = response.data;
-        const setQueryInterval = repeat.pollingIntervalMillis < 2000 ? repeat.pollingIntervalMillis + 1700 : repeat.pollingIntervalMillis;
-        videoInformation.pollingInterval = setQueryInterval
-
-        if (repeat === 0) {
-            console.error(`No chat with id ${liveChat} was found.`);
-        } else {
-            repeat.items.forEach((element) => {
-                const snippet = element.snippet;
-                const author = element.authorDetails ? element.authorDetails.displayName : null;
-                const time = snippet.publishedAt;
-                inputStack.add(JSON.stringify({
-                    author: author,
-                    time: time,
-                    message: snippet.textMessageDetails.messageText,
-                }));
-            });
-            lastElement.previousLastPosition = lastElement.currentLastPosition <= 0 ? 0 : lastElement.currentLastPosition;
-            lastElement.currentLastPosition = [...inputStack].length - 1 >= 0 ? [...inputStack].length : 0;
-            
-            chatInput$.next([...inputStack].slice(lastElement.previousLastPosition, lastElement.currentLastPosition)); // emit latest chats
-        }
-    });
-};
-
 
   
-function beginRecursionLogging(liveChatID, nextPageToken) {
-    (async function loop() {
-        for (let i = 0; i < maximumDailyRequests; i++) {
+function handleLiveChatEvents() {
 
-            if (videoInformation.pollingInterval < 9000) {
-                await new Promise(resolve => setTimeout(resolve, videoInformation.pollingInterval));
-            } else {
-                await new Promise(resolve => setTimeout(resolve, 9000));
-            }
+    liveChat.on('start', (liveId) => console.log(`handling liveChats from live video id: ${liveId}`));
 
-            getPaginatedLiveChatAndAddChatsToInputStack(liveChatID, nextPageToken);
-        }
-    })();
+    liveChat.on("error", (err) => {
+        console.log('LiveChat error: ' + err);
+    })
+    
+    liveChat.on("end", (reason) => {
+        console.log('LiveChat ended: ' + reason);
+    })
+    
+    liveChat.on('chat', (chatItem) => {
+        const author = chatItem.author?.name ? chatItem.author.name : 'unknown';
+        const time = chatItem.timestamp;
+        const filteredMessageText = chatItem.message.filter(el => el.text).flatMap(el => el?.text.trim());
+        const text = filteredMessageText.join(' ');
+
+        const chat = {
+            author: author,
+            time: time,
+            message: text
+        };
+
+        if (chat.message != '') chatInput$.next(chat);
+    });
+
+    const run = liveChat.start();
+    if (!run) console.error('Failed to start; check emitted error');
 };
 
 /**
@@ -250,12 +217,8 @@ function beginRecursionLogging(liveChatID, nextPageToken) {
  * @param {Array} input BehaviourSubject's value
  */
 function actionAvatar(input) {
-    input.forEach(el => {
-        const content = JSON.parse(el)
-        const key = content.message;
-        const author = content.author;
-        translateInput(key, author, CONTROLLER);
-    });
+    const key = input.message;
+    translateInput(key, input.author, CONTROLLER);
 };
 
 chatInput$.subscribe((x) => {
