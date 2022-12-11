@@ -26,7 +26,7 @@ let videoInformation = {
     channel: undefined,
     chatId: undefined,
     videoTitle: undefined,
-    pollingInterval: 2000,
+    pollingInterval: 10000,
 }
 
 let lastElement = {
@@ -160,7 +160,7 @@ function getVideoDetails(auth) {
  * @param liveChat the live chat session id of a live video.
  * 
  */
-function getLiveChat(liveChat, updateDelayInterval) {
+function getLiveChat(liveChat) {
     service.liveChatMessages.list({
         auth: authed,
         key: API_KEY,
@@ -172,18 +172,12 @@ function getLiveChat(liveChat, updateDelayInterval) {
             return;
         }
         const liveChatDetails = response.data;
-        const delayInterval = liveChatDetails.pollingIntervalMillis <= 2100 ? liveChatDetails.pollingIntervalMillis + 700 : liveChatDetails.pollingIntervalMillis;
         const nextPageToken = liveChatDetails.nextPageToken;
-        videoInformation.pollingInterval = delayInterval;
-
-        console.info('-> Current interval: ' + videoInformation.pollingInterval);
-
-        if (!updateDelayInterval) {     // ensure recursion only begins on first call
-            if (liveChatDetails === 0) {
-                console.error(`No chat with id ${liveChat} was found.`);
-            } else {
-                beginRecursionLogging(liveChat, delayInterval, nextPageToken);
-            }
+        
+        if (liveChatDetails === 0) {
+            console.error(`No chat with id ${liveChat} was found.`);
+        } else {
+            beginRecursionLogging(liveChat, nextPageToken);
         }
     });
 };
@@ -209,6 +203,8 @@ function getPaginatedLiveChatAndAddChatsToInputStack(liveChat, nextPageToken) {
         }
 
         const repeat = response.data;
+        const setQueryInterval = repeat.pollingIntervalMillis < 2000 ? repeat.pollingIntervalMillis + 1700 : repeat.pollingIntervalMillis;
+        videoInformation.pollingInterval = setQueryInterval
 
         if (repeat === 0) {
             console.error(`No chat with id ${liveChat} was found.`);
@@ -233,19 +229,17 @@ function getPaginatedLiveChatAndAddChatsToInputStack(liveChat, nextPageToken) {
 
 
   
-function beginRecursionLogging(liveChatID, delay, nextPageToken) {
+function beginRecursionLogging(liveChatID, nextPageToken) {
     (async function loop() {
         for (let i = 0; i < maximumDailyRequests; i++) {
-            if (delay) {
+
+            if (videoInformation.pollingInterval < 9000) {
                 await new Promise(resolve => setTimeout(resolve, videoInformation.pollingInterval));
             } else {
                 await new Promise(resolve => setTimeout(resolve, 9000));
             }
-            if (i & 100 === 0 ) console.info('==== chunk: %s ====', i + 1);
-            getPaginatedLiveChatAndAddChatsToInputStack(liveChatID, nextPageToken);
 
-            // Update polling interval
-            if (i % 20 === 0) getLiveChat(videoInformation.chatId, true);
+            getPaginatedLiveChatAndAddChatsToInputStack(liveChatID, nextPageToken);
         }
     })();
 };
