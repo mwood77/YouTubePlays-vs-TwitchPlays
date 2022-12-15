@@ -31,7 +31,8 @@
     "googleapis": "^61.0.0",
     "http": "0.0.1-security",
     "rxjs-compat": "^6.6.7",
-    "tmi.js": "^1.8.5"
+    "tmi.js": "^1.8.5",
+    "youtube-chat": "^2.2.0"
   },
   "devDependencies": {
     "@types/node": "^14.11.8",
