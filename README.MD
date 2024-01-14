@@ -104,12 +104,12 @@ for (let i = 0; i <= 100; i++) {
     inputStack.add(hashAuthor * Math.random(100) + ':'+ hashMessage * Math.random(100) + ':' + time.getMilliseconds() + '=|=' + cannedArray[randomPosition(5)] + '=|='+ cannedAuthorArray[randomPosition(5)]);
 }
 
+console.log([...inputStack]);
+```
+
 ### Debugging the input mapper
 
 Scroll to the bottom of `input-mapper.js` and uncomment all of the code, then run the file with the following command:
     ```shell
     node input-mapper.js
     ```
-
-console.log([...inputStack]);
-```
