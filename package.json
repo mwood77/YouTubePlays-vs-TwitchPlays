@@ -1,28 +1,32 @@
 {
-  "name": "community-plays",
-  "version": "2.1.3",
+  "name": "YouTubePlays-vs-TwitchPlays",
+  "version": "3.0.0",
   "description": "Simple app that reads an input and outputs keyboard events",
   "scripts": {
-    "start-yt": "cross-env node yt-chat-parser.js",
-    "start-twitch": "cross-env node twitch-chat-parser.js",
-    "start-input-mapper": "node input-mapper.js"
+    "start:yt": "cross-env node yt-chat-parser.js",
+    "start:twitch": "cross-env node twitch-chat-parser.js",
+    "start:input-mapper": "node input-mapper.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mwood77/community-plays.git"
+    "url": "git+https://github.com/mwood77/YouTubePlays-vs-TwitchPlays.git"
   },
   "keywords": [
     "twitch",
+    "twitchplays",
     "youtube",
+    "youtubeplays",
     "plays",
-    "interactive"
+    "interactive",
+    "streaming",
+    "streamer"
   ],
   "author": "Michael Wood",
-  "license": "MIT",
+  "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/mwood77/community-plays/issues"
+    "url": "https://github.com/mwood77/YouTubePlays-vs-TwitchPlays/issues"
   },
-  "homepage": "https://github.com/mwood77/community-plays#readme",
+  "homepage": "https://github.com/mwood77/YouTubePlays-vs-TwitchPlays#readme",
   "dependencies": {
     "@types/gapi": "0.0.39",
     "cross-env": "^7.0.3",

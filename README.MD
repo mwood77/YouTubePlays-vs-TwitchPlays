@@ -1,4 +1,5 @@
-# Twitch vs Youtube
+# YouTubePlays vs TwitchPlays
+
 ## What this is
 This is a collection of applications which integrate with Twitch's IRC server and Youtube's Data V3 API, to provide near real time "player input." 
 
@@ -20,18 +21,20 @@ you can have different platforms (or livestreams) play against one another, with
         YOUTUBE_CONTROLLER=1
         TWITCH_CONTROLLER=2
         ```
-1. Install project dependencies: 
+1. Use `nvm` (Node Version Manager) to handle your node dev environmnet. [Download nvm by clicking here](https://github.com/nvm-sh/nvm?tab=readme-ov-file#install--update-script).
+    - Once `nvm` is installed, run the following command `nvm use`. The environment should detect NodeJS 14 as a requirement and install/set Node 14.
+1. Now install the project's dependencies: 
     ```shell
     npm install
     ```
 
-## Youtube
+## YouTube
 1. Get your credentials:
     - You'll need an OAuth2 cert from Google Cloud. [Don't know how? Follow the Prerequisites and Step 1 of this tutorial](https://developers.google.com/youtube/v3/quickstart/nodejs)
     - You'll also need to generate an API key for this Google Cloud project. **Make sure to restrict the key to `YouTube Data API v3`**
 1. Copy the cert you downloaded (the json file) in Step 1 to 
     ```
-    ~/community-plays/
+    ~/YouTubePlays-vs-TwitchPlays/
     ```
     - Make sure the cert is named `client_secret.json` and not something like `client_secret_sjkdhfalkjh2398y4u23ip4.....com.json`
 1. Throw your API key into the `.env` file. 
@@ -74,14 +77,16 @@ you can have different platforms (or livestreams) play against one another, with
 > as normal and follow the prompts that appear in your terminal. Make sure you paste the generated activation
 > hash back into your active terminal.
 
-1. `npm run start-yt`
+1. `npm run start:yt`
     * make sure your `LIVE_VIDEO_ID` and `API_KEY` are set in your `.env` file.
 2. If prompted to generate a new Auth token, do so. By default this is stored at `Users/{YOUR-USER}/.super-secrets/`
 
 ## Twitch
-1. `npm run start-twitch`
+1. `npm run start:twitch`
 
-# Generate random test data
+# Debugging
+
+## Generate random test data for parsers
 ```javascript
 const cannedArray = ['LEFT', 'RIGHT', 'ENTER', 'UP', 'DOWN'];
 const cannedAuthorArray = ['Aida Oksana 🔺️☆', 'K_A_N_G____ ', 'vaishali', '🌾🎶🎶', 'если не указано кому обращение значит этот вопрос ко всем'];
@@ -98,6 +103,13 @@ for (let i = 0; i <= 100; i++) {
     const time = new Date;
     inputStack.add(hashAuthor * Math.random(100) + ':'+ hashMessage * Math.random(100) + ':' + time.getMilliseconds() + '=|=' + cannedArray[randomPosition(5)] + '=|='+ cannedAuthorArray[randomPosition(5)]);
 }
+
+## Debugging the input mapper
+
+Scroll to the bottom of `input-mapper.js` and uncomment all of the code, then run the file with the following command:
+    ```shell
+    node input-mapper.js
+    ```
 
 console.log([...inputStack]);
 ```
