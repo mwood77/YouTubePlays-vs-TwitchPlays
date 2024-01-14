@@ -109,7 +109,8 @@ console.log([...inputStack]);
 
 ### Debugging the input mapper
 
-Scroll to the bottom of `input-mapper.js` and uncomment all of the code, then run the file with the following command:
-    ```shell
-    node input-mapper.js
-    ```
+Scroll to the bottom of `input-mapper.js` and uncomment all of the code. Then run the file with the following command:
+    
+```shell
+node input-mapper.js
+```
