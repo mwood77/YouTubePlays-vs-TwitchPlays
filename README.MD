@@ -6,12 +6,12 @@ This is a collection of applications which integrate with Twitch's IRC server an
 Players participate by sending chat messages through Youtube LIVE or Twitch's chat box. Because of the division between chat parsers, this allows us to assign each platform a different input (controller); 
 you can have different platforms (or livestreams) play against one another, without any remote code execution.
 
-## What this (guide) isn't
+### What this (guide) isn't
 - I strongly advise that you have a basic understanding of JavaScript / Node before you use this
 - You must figure out how you plan to interface this with other software (games, interactive software, microcontrollers, etc). There is a basic keyboard event emitter/mapper included.
 - This was written with *nix systems in mind. It should be Windows compatible, but I haven't checked.
 
-# Setup
+## Setup
 1. Duplicate the `.env.sample` file and rename it to `.env`
     - This new `.env` file will be gitignored, but **make sure you do not publicize any data contained in this file!**
 1. Assign controllers to the stream/platform.
@@ -28,7 +28,7 @@ you can have different platforms (or livestreams) play against one another, with
     npm install
     ```
 
-## YouTube
+### YouTube
 1. Get your credentials:
     - You'll need an OAuth2 cert from Google Cloud. [Don't know how? Follow the Prerequisites and Step 1 of this tutorial](https://developers.google.com/youtube/v3/quickstart/nodejs)
     - You'll also need to generate an API key for this Google Cloud project. **Make sure to restrict the key to `YouTube Data API v3`**
@@ -52,7 +52,7 @@ you can have different platforms (or livestreams) play against one another, with
         ```
 1. Proceed to [Running a parser](#running-a-parser)
 
-## Twitch
+### Twitch
 1. Get the id of the channel you wish to connect to. You can extract the id from the url.
     ```sh
     Example:
@@ -66,9 +66,9 @@ you can have different platforms (or livestreams) play against one another, with
     ```
 1. Proceed to [Running a parser](#running-a-parser)
 
-# Running a parser
+## Running a parser
 
-## Youtube
+### Youtube
 > If needed, you can delete your O2Auth token to force a new one.
 > The token should be located at: `Users/{YOUR-USER}/.super-secrets/`
 
@@ -81,7 +81,7 @@ you can have different platforms (or livestreams) play against one another, with
     * make sure your `LIVE_VIDEO_ID` and `API_KEY` are set in your `.env` file.
 2. If prompted to generate a new Auth token, do so. By default this is stored at `Users/{YOUR-USER}/.super-secrets/`
 
-## Twitch
+### Twitch
 1. `npm run start:twitch`
 
 ## Websocket consumers
@@ -94,7 +94,7 @@ Note, that the values `2 | 3 | 4 | etc` must be unique to each connected client.
 
 # Debugging
 
-## Generate random test data for parsers
+### Generate random test data for parsers
 ```javascript
 const cannedArray = ['LEFT', 'RIGHT', 'ENTER', 'UP', 'DOWN'];
 const cannedAuthorArray = ['Aida Oksana 🔺️☆', 'K_A_N_G____ ', 'vaishali', '🌾🎶🎶', 'если не указано кому обращение значит этот вопрос ко всем'];
@@ -112,12 +112,13 @@ for (let i = 0; i <= 100; i++) {
     inputStack.add(hashAuthor * Math.random(100) + ':'+ hashMessage * Math.random(100) + ':' + time.getMilliseconds() + '=|=' + cannedArray[randomPosition(5)] + '=|='+ cannedAuthorArray[randomPosition(5)]);
 }
 
-## Debugging the input mapper
-
-Scroll to the bottom of `input-mapper.js` and uncomment all of the code, then run the file with the following command:
-    ```shell
-    node input-mapper.js
-    ```
-
 console.log([...inputStack]);
+```
+
+### Debugging the input mapper
+
+Scroll to the bottom of `input-mapper.js` and uncomment all of the code. Then run the file with the following command:
+    
+```shell
+node input-mapper.js
 ```
