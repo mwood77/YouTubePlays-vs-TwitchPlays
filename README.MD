@@ -1,7 +1,7 @@
 # YouTubePlays vs TwitchPlays
 
 ## What this is
-This is a collection of applications which integrate with Twitch's IRC server and Youtube's Data V3 API, to provide near real time "player input." 
+This is a collection of applications which integrate with Twitch's IRC server and Youtube's Data V3 API, to provide near real time "player input." The actioned input is then emitted as part of a websocket client <-> server connection, which can be consumed by further dependents.
 
 Players participate by sending chat messages through Youtube LIVE or Twitch's chat box. Because of the division between chat parsers, this allows us to assign each platform a different input (controller); 
 you can have different platforms (or livestreams) play against one another, without any remote code execution.
@@ -83,6 +83,14 @@ you can have different platforms (or livestreams) play against one another, with
 
 ## Twitch
 1. `npm run start:twitch`
+
+## Websocket consumers
+Your consumer applications can connect to the websocket with the following URLS:
+```shell
+    ws://localhost:8080/{ 2 | 3 | 4 | etc }
+```
+
+Note, that the values `2 | 3 | 4 | etc` must be unique to each connected client.
 
 # Debugging
 
