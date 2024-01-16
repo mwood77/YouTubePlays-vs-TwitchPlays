@@ -3,9 +3,9 @@
   "version": "3.0.0",
   "description": "Simple app that reads an input and outputs keyboard events",
   "scripts": {
-    "start:yt": "cross-env node yt-chat-parser.js",
-    "start:twitch": "cross-env node twitch-chat-parser.js",
-    "start:input-mapper": "node input-mapper.js"
+    "start:yt": "node ws-server.js & cross-env node yt-chat-parser.js",
+    "start:twitch": "node ws-server.js & cross-env node twitch-chat-parser.js",
+    "start:input-mapper": "node ws-server.js & node input-mapper.js"
   },
   "repository": {
     "type": "git",
@@ -36,6 +36,7 @@
     "http": "0.0.1-security",
     "rxjs-compat": "^6.6.7",
     "tmi.js": "^1.8.5",
+    "ws": "^8.16.0",
     "youtube-chat": "^2.2.0"
   },
   "devDependencies": {

@@ -1,5 +1,7 @@
 const robot = require("robotjs");
 const REF = require('./resources/input-map');
+const WebSocket = require('ws');
+const ws = new WebSocket('ws://localhost:8080/1');
 
 const validInput = [
     'U','UP','D','DOWN','L','LEFT','R','RIGHT',
@@ -16,17 +18,27 @@ const controllerStates = {
 };
 
 /**
- * logs keypresses and author to console.
- * 
+ * logs keypresses and author to console.aaaaaaaaa
+ * aa
  * @param {string} key the input
  * @param {string?} author youtube or twitch username (if available)
  */
-function logInput(key, author) {
-    author != null ?
-        console.info ('user: ' + author + '\n  action: ' + key  ) :
-        console.info('action: ' + key);
-}
+function logInput(key, author, player) {
 
+    // @todo - this is a hack, make it better
+    // Controllers configed as:
+    // YOUTUBE_CONTROLLER=1
+    // TWITCH_CONTROLLER=2
+    // therefore, we can deduce the platform based upon this
+
+    const message = {
+        user: author != null ? author : '',
+        action: key,
+        platform: player == 1 ? 'youtube' : 'twitch',
+    }
+
+    ws.send(JSON.stringify(message))
+}
 /**
  * Single action hold. This is primarily designed to emulate an analog joystick.
  * Button is held 60ms * modifier. 
@@ -115,7 +127,10 @@ function comboInput(keys, author, accessor) {
     // Prefer to log unsanitized input, 
     // so users don't realize filtering
     // is happenning.
-    logInput(keys, author);
+
+    const player = accessor.split('_')[1];
+
+    logInput(keys, author, player);
 
     allowList.forEach((el, i) => {
         robot.keyToggle(el.toLowerCase(), 'down');
@@ -165,54 +180,54 @@ function inputMapper(key, modifier, author, player) {
     switch (inputToUpperCase) {
         case 'U': 
         case 'UP': 
-            logInput(key, author);
+            logInput(key, author, player);
             holdInput(REF.INPUT[accessor].UP, modifier);
             break;
         case 'D':
         case 'DOWN':
-            logInput(key, author);
+            logInput(key, author, player);
             holdInput(REF.INPUT[accessor].DOWN, modifier);
             break;
         case 'L':
         case 'LEFT':
-            logInput(key, author);
+            logInput(key, author, player);
             holdInput(REF.INPUT[accessor].LEFT, modifier);
             break;
         case 'R':
         case 'RIGHT':
-            logInput(key, author);
+            logInput(key, author, player);
             holdInput(REF.INPUT[accessor].RIGHT, modifier);
             break;
         case 'A':
-            logInput(key, author);
+            logInput(key, author, player);
             tapOrRepititiveTapInput(REF.INPUT[accessor].A, modifier);
             break;
         case 'B':
-            logInput(key, author);
+            logInput(key, author, player);
             tapOrRepititiveTapInput(REF.INPUT[accessor].B, modifier);
             break;
         case 'X':
-            logInput(key, author);
+            logInput(key, author, player);
             tapOrRepititiveTapInput(REF.INPUT[accessor].X, modifier);
             break;
         case 'Y':
-            logInput(key, author);
+            logInput(key, author, player);
             tapOrRepititiveTapInput(REF.INPUT[accessor].Y, modifier);
             break;
         case 'START':
-            logInput(key, author);
+            logInput(key, author, player);
             tapOrRepititiveTapInput(REF.INPUT[accessor].START, modifier);
             break;
         case 'SELECT':
-            logInput(key, author);
+            logInput(key, author, player);
             tapOrRepititiveTapInput(REF.INPUT[accessor].SELECT, modifier);
             break;
         case 'LTRIG':
-            logInput(key, author);
+            logInput(key, author, player);
             tapOrRepititiveTapInput(REF.INPUT[accessor].LTRIG, modifier);
             break;
         case 'RTRIG':
-            logInput(key, author);
+            logInput(key, author, player);
             tapOrRepititiveTapInput(REF.INPUT[accessor].RTRIG, modifier);
             break;
         case 'Z':
@@ -231,10 +246,13 @@ function inputMapper(key, modifier, author, player) {
         case 'QUIT-IT':
         case 'IM-CALLING-MOM':
         case 'STOP-IT':
+        case 'MOM':
         case 'MOOOOOOOOOOM':
             unplugController(player);
             break;
-
+        case 'DAD':
+            logInput('ARE YA WINNIN\'? - 👨‍🦳')
+            break;
         default:
             break;
     }
@@ -253,8 +271,11 @@ function unplugController(player) {
         controllerStates.connected[enemy] = !controllerStates.connected[enemy];
         controllerStates.time = Date.now();
     }
-    logInput(`🎮 - CONTROLLER ${enemy} UNPLUGGED! - 🎮`);
-    logInput(`🎮 - Go get mom or wait 7 seconds! - 🎮`);
+
+    // This needs to be the opposite of what's set in our env file.
+    const humanReadable = enemy === 1 ? 'twitch' : 'youtube'
+    logInput(`${humanReadable.toLocaleUpperCase()}'S CONTROLLER UNPLUGGED! - 🎮`);
+    logInput(`WAIT 7 SECONDS OR CALL MOM - 🎮`);
 }
 
 /**
@@ -310,6 +331,7 @@ function translateInput(key, author, player) {
 //     'B12',
 //     'down+right+x',
 //     'START6',
+//     'dad'
 // ];
 
 // const sampleInput2 = [
@@ -318,6 +340,7 @@ function translateInput(key, author, player) {
 //     'down+right+x',
 //     'B12',
 //     'LEFT15,DOWN+RIGHT+X,UP+A10,A12,B12,down+right+x',
+//     'IM-CALLING-MOM',
 //     'X12',
 //     'Y12',
 //     'down+right+x',
