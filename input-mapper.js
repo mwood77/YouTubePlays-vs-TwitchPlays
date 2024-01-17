@@ -1,7 +1,7 @@
 const robot = require("robotjs");
 const REF = require('./resources/input-map');
 const WebSocket = require('ws');
-const ws = new WebSocket('ws://localhost:8080/1');
+const ws = new WebSocket('ws://localhost:8070/1');
 
 const validInput = [
     'U','UP','D','DOWN','L','LEFT','R','RIGHT',

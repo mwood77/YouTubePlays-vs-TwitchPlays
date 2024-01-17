@@ -5,7 +5,8 @@
   "scripts": {
     "start:yt": "node ws-server.js & cross-env node yt-chat-parser.js",
     "start:twitch": "node ws-server.js & cross-env node twitch-chat-parser.js",
-    "start:input-mapper": "node ws-server.js & node input-mapper.js"
+    "start:input-mapper": "node ws-server.js & node input-mapper.js",
+    "stream": "node ws-server.js & cross-env node twitch-chat-parser.js & cross-env node yt-chat-parser.js"
   },
   "repository": {
     "type": "git",

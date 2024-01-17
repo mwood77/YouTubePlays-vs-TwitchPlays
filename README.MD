@@ -3,7 +3,7 @@
 ## What this is
 This is a collection of applications which integrate with Twitch's IRC server and Youtube's Data V3 API, to provide near real time "player input." The actioned input is then emitted as part of a websocket client <-> server connection, which can be consumed by further dependents.
 
-Players participate by sending chat messages through Youtube LIVE or Twitch's chat box. Because of the division between chat parsers, this allows us to assign each platform a different input (controller); 
+Players participate by sending chat messages through Youtube live or Twitch's chat box. Because of the division between chat parsers, this allows us to assign each platform a different input (controller); 
 you can have different platforms (or livestreams) play against one another, without any remote code execution.
 
 ### What this (guide) isn't
@@ -22,7 +22,7 @@ you can have different platforms (or livestreams) play against one another, with
         TWITCH_CONTROLLER=2
         ```
 1. Use `nvm` (Node Version Manager) to handle your node dev environmnet. [Download nvm by clicking here](https://github.com/nvm-sh/nvm?tab=readme-ov-file#install--update-script).
-    - Once `nvm` is installed, run the following command `nvm use`. The environment should detect NodeJS 14 as a requirement and install/set Node 14.
+    - Once `nvm` is installed, run the following command `nvm use && nvm install`. The environment should detect NodeJS 18 as a requirement and install/set Node 18.
 1. Now install the project's dependencies: 
     ```shell
     npm install
@@ -68,7 +68,16 @@ you can have different platforms (or livestreams) play against one another, with
 
 ## Running a parser
 
-### Youtube
+### Streaming
+This will run everything required to stream. Ensure all of the required information is filled-in, in the `.env` file.
+
+Now run:
+```
+npm run stream
+```
+
+### Individual Parsers
+#### Youtube
 > If needed, you can delete your O2Auth token to force a new one.
 > The token should be located at: `Users/{YOUR-USER}/.super-secrets/`
 
@@ -81,16 +90,17 @@ you can have different platforms (or livestreams) play against one another, with
     * make sure your `LIVE_VIDEO_ID` and `API_KEY` are set in your `.env` file.
 2. If prompted to generate a new Auth token, do so. By default this is stored at `Users/{YOUR-USER}/.super-secrets/`
 
-### Twitch
+#### Twitch
 1. `npm run start:twitch`
 
-## Websocket consumers
-Your consumer applications can connect to the websocket with the following URLS:
+## Websocket consumers (dependents)
+Your consumer applications can connect to the websocket server with the following URLS:
 ```shell
-    ws://localhost:8080/{ 2 | 3 | 4 | etc }
+ws://localhost:8070/{ 2 | 3 | 4 | etc }
 ```
 
-Note, that the values `2 | 3 | 4 | etc` must be unique to each connected client.
+Note
+ that the values `2 | 3 | 4 | etc` must be unique to each connected client.
 
 # Debugging
 
