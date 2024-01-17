@@ -184,6 +184,7 @@ function inputMapper(key, modifier, author, player) {
             holdInput(REF.INPUT[accessor].UP, modifier);
             break;
         case 'D':
+        case 'DN':
         case 'DOWN':
             logInput(key, author, player);
             holdInput(REF.INPUT[accessor].DOWN, modifier);
@@ -233,14 +234,14 @@ function inputMapper(key, modifier, author, player) {
         case 'Z':
         case 'ZTRIG':
             break;
-            // logInput(key, author);
+            // logInput(key, author, player);
             // tapOrRepititiveTapInput(key, modifier);
             // break;
         case 'CC':
         case 'CENTERCAM':
             break;
             // Super Mario 64 Specific
-            // logInput('centering camera', author);
+            // logInput('centering camera', author, player);
             // centerCamera(['u', 'j']); // [0] = zoom in, [1] = zoom out
             // break;
         case 'QUIT-IT':
